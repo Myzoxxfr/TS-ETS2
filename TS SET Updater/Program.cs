@@ -68,7 +68,7 @@ namespace TS_SET_Updater
             {
 
                 Exception ex = (Exception)e.ExceptionObject;
-                string errorMsg = "An application error occurred. Please contact the Developer with the following information:\n\n";
+                string errorMsg = "An application error occurred.\n\nError details:\n\n";
 
                 // Since we can't prevent the app from terminating, log this to the event log.
                 if (!EventLog.SourceExists("ThreadException"))
@@ -98,7 +98,7 @@ namespace TS_SET_Updater
         // Creates the error message and displays it.
         private static DialogResult ShowThreadExceptionDialog(string title, Exception e)
         {
-            string errorMsg = "An application error occurred. Please contact the Developer with the following information:\n\n"
+            string errorMsg = "An application error occurred.\n\nError details:\n\n"
                 + e.Message + "\n\nStack Trace:\n" + e.StackTrace;
 
             return MessageBox.Show(errorMsg, title, MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Stop);

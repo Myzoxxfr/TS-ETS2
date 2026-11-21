@@ -319,6 +319,10 @@ namespace TS_SE_Tool
                         }
                         else
                         {
+                            Save.Items.SaveCompatibility.ReadTruckPosition(tempSavefileInMemory);
+                            foreach (var entry in NewSave)
+                                new Save.DataFormat.SCS_Placement(entry.Value[1]);
+
                             //Delete overwritten savefiles
                             foreach (KeyValuePair<string, string> ftd in FoldersToClear)
                             {
@@ -406,8 +410,7 @@ namespace TS_SE_Tool
 
                                 if (!checkBoxCustomThumbnail.Checked)
                                 {
-                                    string[] imgpaths = new string[] { "img\\" + MainForm.GameType + "\\autosave.dds" };
-                                    newbmp = new Bitmap(MainForm.ExtImgLoader(imgpaths, 256, 128, 0, 0)[0]);
+                                    newbmp = new Bitmap(Utilities.Graphics_TSSET.ddsImgLoader("img\\" + MainForm.GameType + "\\autosave.dds", 256, 128).images[0]);
                                 }
                                 else if (checkBoxCustomThumbnail.Checked && Thumbnails.Length != 0)
                                 {
@@ -427,37 +430,8 @@ namespace TS_SE_Tool
                                 tgaImg.Save(fp + "\\preview.tga");
 
                                 //Create game save file
-                                using (StreamWriter writer = new StreamWriter(fp + "\\game.sii", true))
-                                {
-                                    writer.Write(tempSavefileInMemory[0]);
-
-                                    for (int line = 1; line < tempSavefileInMemory.Length; line++)
-                                    {
-                                        string SaveInMemLine = tempSavefileInMemory[line];
-
-                                        if (SaveInMemLine.StartsWith(" truck_placement:"))
-                                        {
-                                            writer.Write("\r\n" + " truck_placement: " + entry.Value[1]);
-                                            line++;
-                                            writer.Write("\r\n" + " trailer_placement: (0, 0, 0) (1; 0, 0, 0)");
-                                            line++;
-                                            int slave_trailers = int.Parse(tempSavefileInMemory[line].Split(new char[] { ' ' })[2]);
-                                            writer.Write("\r\n" + tempSavefileInMemory[line]);
-                                            if (slave_trailers > 0)
-                                            {
-                                                for (int i = 0; i < slave_trailers; i++)
-                                                {
-                                                    writer.Write("\r\n" + " slave_trailer_placements[" + i + "]: (0, 0, 0) (1; 0, 0, 0)");
-                                                    line++;
-                                                }
-                                            }
-                                            continue;
-                                        }
-
-                                        //EndWrite:
-                                        writer.Write("\r\n" + SaveInMemLine);
-                                    }
-                                }
+                                File.WriteAllText(fp + "\\game.sii",
+                                    Save.Items.SaveCompatibility.MoveTruck(tempSavefileInMemory, entry.Value[1]));
 
                                 iSave++;
                             }
@@ -665,18 +639,7 @@ namespace TS_SE_Tool
                     //Load and scan save files for truck position
                     string[] tSF = MainForm.NewDecodeFile(temp[0].ToString() + @"\game.sii");
 
-                    string[] chunkOfline;
-                    string truckPosition = "";
-
-                    for (int line = 0; line < tSF.Length; line++)
-                    {
-                        if (tSF[line].StartsWith(" truck_placement:"))
-                        {
-                            chunkOfline = tSF[line].Split(new char[] { ':' });
-                            truckPosition = chunkOfline[1].TrimStart(' ');
-                            break;
-                        }
-                    }
+                    string truckPosition = Save.Items.SaveCompatibility.ReadTruckPosition(tSF);
                     //Clear memory
                     tSF = null;
                     GC.Collect();

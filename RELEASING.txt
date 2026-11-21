@@ -1,0 +1,25 @@
+Updates come from https://github.com/Myzoxxfr/TS-ETS2/releases/latest only.
+
+1. Open TS-ETS2.sln and rebuild Release | Any CPU.
+   This source builds version 0.3.12.0 and includes the previous save,
+   Skills-menu and level fixes.
+
+2. ZIP the CONTENTS of TS SE Tool\bin\Release as TS-ETS2.0.3.12.0.zip.
+   TS-ETS2.exe, libs, img, lang and the other runtime files must be at
+   the ZIP root, with no enclosing Release or project folder.
+
+3. In PowerShell, run the helper from this source folder:
+   .\Create-UpdateInfo.ps1 -ZipPath 'C:\path\to\TS-ETS2.0.3.12.0.zip'
+   It creates fileData.txt beside the ZIP with its filename, a tab and
+   the SHA-512 hash. Generate it after the ZIP is final.
+
+4. Create a regular published release on your fork and attach BOTH files:
+   TS-ETS2.0.3.12.0.zip
+   fileData.txt
+   Set it as the latest release. A suggested tag is v0.3.12.0.
+
+For future releases, increase AssemblyVersion and AssemblyFileVersion in
+TS SE Tool\Properties\AssemblyInfo.cs, rebuild, and use that same four-part
+version in the ZIP filename. Generate fresh metadata for each ZIP.
+
+The source ZIP is separate from the app ZIP and is not used by the updater.

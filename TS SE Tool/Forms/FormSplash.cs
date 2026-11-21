@@ -52,22 +52,21 @@ namespace TS_SE_Tool
             if (translatedString != null)
                 labelVersion.Text = String.Format(translatedString, Utilities.AssemblyData.AssemblyVersion);
             else
-                labelVersion.Text = String.Format("{0} (alpha)", Utilities.AssemblyData.AssemblyVersion);
+                labelVersion.Text = Utilities.AssemblyData.AssemblyVersion;
+
+            tableLayoutPanel4.Visible = false;
+            tableLayoutPanel2.RowStyles[5].Height = 0;
+            linkLabelHelpLocalPDF.Visible = false;
+            labelor2.Visible = false;
+            tableLayoutPanel3.ColumnStyles[0].Width = 0;
+            tableLayoutPanel3.ColumnStyles[1].Width = 0;
+            tableLayoutPanel3.ColumnStyles[2].Width = 100;
+
+            labelSupportDeveloper.Visible = false;
+            buttonSupportDeveloper.Visible = false;
         }
 
         private void FormSplash_Load(object sender, EventArgs e)
-        {
-            try
-            {
-                CheckForUpdates = Properties.Settings.Default.CheckUpdatesOnStartup;
-            }
-            catch
-            { }
-
-            CheckLatestVersion();
-        }
-
-        private void FormSplash_Shown(object sender, EventArgs e)
         {
             try
             {
@@ -80,7 +79,12 @@ namespace TS_SE_Tool
                 buttonOK.Text = "Close application";
                 buttonOK.Click += new EventHandler(this.buttonOK_ClickCloseApp);
             }
+
+            CheckLatestVersion();
         }
+
+        private void FormSplash_Shown(object sender, EventArgs e)
+        { }
 
         //Actions
         private void linkLabelNewVersion_Click(object sender, EventArgs e)
@@ -89,10 +93,10 @@ namespace TS_SE_Tool
 
             FormCheckUpdates FormWindow = new FormCheckUpdates("download");
             FormWindow.NewVersion = NewVersion;
+
             DialogResult t = FormWindow.ShowDialog();
 
-            buttonOK.Enabled = true;
-            if(t == DialogResult.OK)
+            if (t == DialogResult.OK)
             {
                 linkLabelNewVersion.Text = String.Format("You are using latest version!\r\n(Repair)");
                 linkLabelNewVersion.DisabledLinkColor = this.ForeColor;
@@ -105,6 +109,8 @@ namespace TS_SE_Tool
 
             linkLabelNewVersion.LinkBehavior = LinkBehavior.NeverUnderline;
             linkLabelNewVersion.Links[0].Enabled = false;
+
+            buttonOK.Enabled = true;
         }
         //Links
         private void linkFirst_Click(object sender, EventArgs e)
@@ -114,12 +120,12 @@ namespace TS_SE_Tool
 
         private void linkSecond_Click(object sender, EventArgs e)
         {
-            Process.Start(Utilities.Web_Utilities.External.linTMPforum);
+            Process.Start(Utilities.Web_Utilities.External.linkTMPforum);
         }
 
         private void linkLabelGitHub_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Process.Start(Utilities.Web_Utilities.External.linGithubReleasesLatest);
+            Process.Start(Utilities.Web_Utilities.External.linkGithubReleasesLatest);
         }
 
         private void linkLabelHelpLocalPDF_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -147,7 +153,7 @@ namespace TS_SE_Tool
             Application.Exit();
         }
 
-        private void buttonSupport_Click(object sender, EventArgs e)
+        private void buttonSupportDeveloper_Click(object sender, EventArgs e)
         {
             string url = Utilities.Web_Utilities.External.linkHelpDeveloper;
 
@@ -159,13 +165,24 @@ namespace TS_SE_Tool
         //Extra
         private async void CheckLatestVersion()
         {
-            if (CheckForUpdates && Web_Utilities.External.CheckNewVersionTimeElapsed(MainForm.ProgSettingsV.LastUpdateCheck) )
+            if ( !MainForm.TssetFoldersExist || (CheckForUpdates && Web_Utilities.External.CheckNewVersionTimeElapsed(MainForm.ProgSettingsV.LastUpdateCheck)) )
             {
-                SetLinkLabelNewVersionvisual(visualStatus.neutral);
+                if (MainForm.TssetFoldersExist)
+                {
+                    SetLinkLabelNewVersionvisual(visualStatus.neutral);
 
-                linkLabelNewVersion.Text = "Checking ";
+                    linkLabelNewVersion.Text = "Checking ";
 
-                buttonOK.Text = "Checking for updates";
+                    buttonOK.Text = "Checking for updates";
+                }
+                else
+                {
+                    SetLinkLabelNewVersionvisual(visualStatus.neutralBold);
+
+                    linkLabelNewVersion.Text = String.Format("Your version lacking important files!\r\nGetting link ");
+
+                    buttonOK.Text = "Getting a link to restore important files";
+                }
 
                 NewVersion = await Task.Run(() => Web_Utilities.External.CheckNewVersionAvailability(linkLabelNewVersion));
 
@@ -184,7 +201,10 @@ namespace TS_SE_Tool
                         }
                         else
                         {
-                            linkLabelNewVersion.Text = String.Format("You are using latest version!\r\n(Repair)");
+                            if (MainForm.TssetFoldersExist)
+                                linkLabelNewVersion.Text = String.Format("You are using latest version!\r\n(Repair)");
+                            else
+                                linkLabelNewVersion.Text = String.Format("Your version lacking important files!\r\n(Repair)");
 
                             SetLinkLabelNewVersionvisual(visualStatus.neutralLinked);
                         }
@@ -213,8 +233,16 @@ namespace TS_SE_Tool
             else
                 tableLayoutPanel2.RowStyles[3] = new RowStyle(SizeType.Absolute, 0F);
 
-            buttonOK.Click += new EventHandler(buttonOK_Click);
-            buttonOK.Text = "OK";
+            if (MainForm.TssetFoldersExist)
+            {
+                buttonOK.Click += new EventHandler(buttonOK_Click);
+                buttonOK.Text = "OK";
+            }
+            else
+            {
+                buttonOK.Click += new EventHandler(buttonOK_ClickCloseApp);
+                buttonOK.Text = "Close";
+            }
         }
 
         //
@@ -222,7 +250,8 @@ namespace TS_SE_Tool
         {
             neutral = 0,
             good = 1,
-            neutralLinked = 2,
+            neutralBold = 2,
+            neutralLinked = 3,
             bad = -1
         }
 
@@ -238,6 +267,18 @@ namespace TS_SE_Tool
                         linkLabelNewVersion.LinkColor = this.ForeColor;
                         linkLabelNewVersion.DisabledLinkColor = this.ForeColor;
                         linkLabelNewVersion.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 204);
+
+                        break;
+                    }
+
+                case visualStatus.neutralBold:
+                    {
+                        linkLabelNewVersion.Links[0].Enabled = false;
+
+                        linkLabelNewVersion.LinkBehavior = LinkBehavior.NeverUnderline;
+                        linkLabelNewVersion.LinkColor = this.ForeColor;
+                        linkLabelNewVersion.DisabledLinkColor = this.ForeColor;
+                        linkLabelNewVersion.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
 
                         break;
                     }
@@ -264,6 +305,7 @@ namespace TS_SE_Tool
 
                         break;
                     }
+
                 case visualStatus.bad:
                     {
                         linkLabelNewVersion.Links[0].Enabled = false;

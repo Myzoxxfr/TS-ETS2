@@ -32,26 +32,26 @@ using System.Threading;
 using System.Net.Mime;
 using System.Security.Cryptography;
 using TS_SE_Tool.Utilities;
+using System.Security.Policy;
 
 namespace TS_SE_Tool.Utilities
 {
     public class Web_Utilities
     {
-        public static Web_Utilities External = new Web_Utilities();
+        internal static Web_Utilities External = new Web_Utilities();
 
-        internal string linkCheckVersion    = "https://rebrand.ly/TS-SET-CheckVersion";
-        internal string linkDownloadVersion = "https://rebrand.ly/TS-SET-Download";
+        private const string RepositoryUrl = "https://github.com/Myzoxxfr/TS-ETS2";
+        internal string linkCheckVersion = RepositoryUrl + "/releases/latest/download/fileData.txt";
         internal string linkYoutubeTutorial = "https://rebrand.ly/TS-SET-Tutorial";
 
         internal string linkHelpDeveloper = "https://www.paypal.me/LIPtoHCode";
-        internal string linkMailDeveloper = "liptoh.codebase@gmail.com";
 
         internal string linkSCSforum = "https://forum.scssoft.com/viewtopic.php?f=34&t=266092";
-        internal string linTMPforum = "https://forum.truckersmp.com/index.php?/topic/79561-ts-saveeditor-tool";
-        internal string linGithub = "https://github.com/LIPtoH/TS-SE-Tool";
+        internal string linkTMPforum = "https://forum.truckersmp.com/index.php?/topic/79561-ts-saveeditor-tool";
+        internal string linkGithub = RepositoryUrl;
 
-        internal string linGithubReleases = "https://github.com/LIPtoH/TS-SE-Tool/releases";
-        internal string linGithubReleasesLatest = "https://github.com/LIPtoH/TS-SE-Tool/releases/latest";
+        internal string linkGithubReleases = RepositoryUrl + "/releases";
+        internal string linkGithubReleasesLatest = RepositoryUrl + "/releases/latest";
 
         private static System.Timers.Timer aTimer;
         private static byte atimerCounter = 0;
@@ -73,71 +73,66 @@ namespace TS_SE_Tool.Utilities
             aTimerControlText = _control.Text;
             SetTimer(_control);
 
-            string[] NewVersion = { "", "" };
-            string newversionData = GetLatestVersionData(linkCheckVersion);
-
-            if (newversionData != null)
+            try
             {
-                NewVersion = newversionData.Split(new char[] { '\t' });
-
-                if (NewVersion[0] != null && NewVersion[0].Contains("TS.SE.Tool"))                
-                    NewVersion[0] = NewVersion[0].Replace("TS.SE.Tool.", "").Replace(".zip", "");
-
-                aTimer.Stop();
-                aTimer.Dispose();
-
-                return NewVersion;
+                return ParseUpdateData(GetLatestVersionData());
             }
-            else
+            finally
             {
                 aTimer.Stop();
                 aTimer.Dispose();
-
-                return null;
             }
         }
 
-        private string GetLatestVersionData(string url)
+        private string GetLatestVersionData()
         {
-            string result = null;
-
             using (WebClientWithTO client = new WebClientWithTO())
             {
+                client.Timeout_S = 10;
                 try
                 {
-                    client.Timeout = 5;
-                    result = client.DownloadString(url);
+                    return client.DownloadString(linkCheckVersion);
                 }
-                catch { }
-
-                client.Dispose();
+                catch (Exception ex)
+                {
+                    IO_Utilities.LogWriter("Could not check fork releases: " + ex.Message);
+                    return null;
+                }
             }
-
-            return result;
         }
 
         internal bool? CheckNewVersionStatus(string[] _NewVersion)
         {
-            bool? betterVersion = false;
+            if (_NewVersion == null || _NewVersion.Length != 2 || !Version.TryParse(_NewVersion[0], out var version))
+                return null;
+            int comparison = version.CompareTo(Version.Parse(AssemblyData.AssemblyVersion));
+            if (comparison > 0) return true;
+            if (comparison == 0) return false;
+            return null;
+        }
 
-            string[] newArr = _NewVersion[0].Split(new char[] { '.' });
-            string[] currArr = AssemblyData.AssemblyVersion.Split(new char[] { '.' });
+        internal static string[] ParseUpdateData(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return null;
+            var fields = text.Trim().TrimStart('\uFEFF').Split('\t');
+            if (fields.Length != 2) return null;
+            string filename = fields[0].Trim();
+            const string prefix = "TS-ETS2.";
+            if (filename.Length <= prefix.Length + 4 || !filename.StartsWith(prefix, StringComparison.Ordinal) || !filename.EndsWith(".zip", StringComparison.Ordinal))
+                return null;
+            string versionText = filename.Substring(prefix.Length, filename.Length - prefix.Length - 4);
+            if (!Version.TryParse(versionText, out var version) || version.Revision < 0 || version.ToString() != versionText)
+                return null;
+            string hash = fields[1].Trim();
+            if (hash.Length != 128 || !hash.All(Uri.IsHexDigit)) return null;
+            return new[] { versionText, hash.ToUpperInvariant() };
+        }
 
-            for (byte i = 0; i < newArr.Length; i++)
-            {
-                if (byte.Parse(newArr[i]) > byte.Parse(currArr[i]))
-                {
-                    betterVersion = true;
-                    break;
-                }
-                else if (byte.Parse(newArr[i]) < byte.Parse(currArr[i]))
-                {
-                    betterVersion = null;
-                    break;
-                }
-            }
-
-            return betterVersion;
+        internal string GetDownloadUrl(string versionText)
+        {
+            if (!Version.TryParse(versionText, out var version) || version.Revision < 0 || version.ToString() != versionText)
+                throw new FormatException("Invalid update version.");
+            return linkGithubReleasesLatest + "/download/TS-ETS2." + versionText + ".zip";
         }
         //
         private static void SetTimer(Control _control)
@@ -164,17 +159,45 @@ namespace TS_SE_Tool.Utilities
             });
         }
 
-        private class WebClientWithTO : WebClient
+        internal class WebClientWithTO : WebClient
         {
-            public UInt16 Timeout { get; set; }
+            public UInt16 Timeout_S { get; set; } = 60;
+
+            public WebClientWithTO()
+            {
+                Headers[HttpRequestHeader.UserAgent] = "TS-ETS2";
+                Headers[HttpRequestHeader.CacheControl] = "no-cache";
+            }
 
             protected override WebRequest GetWebRequest(Uri uri)
             {
                 WebRequest lWebRequest = base.GetWebRequest(uri);
-                lWebRequest.Timeout = Timeout * 1000;
-                ((HttpWebRequest)lWebRequest).ReadWriteTimeout = Timeout;
+                lWebRequest.Timeout = Timeout_S * 1000;
+                ((HttpWebRequest)lWebRequest).ReadWriteTimeout = Timeout_S * 1000;
 
                 return lWebRequest;
+            }
+        }
+
+        internal bool RemoteFileExists(string url)
+        {
+            try
+            {
+                //Creating the HttpWebRequest
+                HttpWebRequest request = WebRequest.Create(url) as HttpWebRequest;
+                //Setting the Request method HEAD, you can also use GET too.
+                request.Method = "HEAD";
+                request.Timeout = 5000;
+                //Getting the Web Response.
+                HttpWebResponse response = request.GetResponse() as HttpWebResponse;
+                //Returns TRUE if the Status code == 200
+                response.Close();
+                return (response.StatusCode == HttpStatusCode.OK);
+            }
+            catch
+            {
+                //Any exception will returns false.
+                return false;
             }
         }
     }

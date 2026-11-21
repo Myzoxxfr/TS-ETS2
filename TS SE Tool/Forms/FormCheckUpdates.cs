@@ -35,6 +35,8 @@ namespace TS_SE_Tool
 {
     public partial class FormCheckUpdates : Form
     {
+        FormMain MainForm = Application.OpenForms.OfType<FormMain>().Single();
+
         internal string[] NewVersion = { "", "" };
         string FormMode = "check";
 
@@ -86,10 +88,10 @@ namespace TS_SE_Tool
                 if (trysCount == 6)
                     break;
 
-                startDownload();
+                bool downloaded = startDownload();
 
                 labelStatus.Text = "Checking file...";
-                properFileDownloaded = checkFileHash(Directory.GetCurrentDirectory() + @"\updater\ts.set.newversion.zip", NewVersion[1]);
+                properFileDownloaded = downloaded && checkFileHash(Directory.GetCurrentDirectory() + @"\updater\ts.set.newversion.zip", NewVersion[1]);
 
                 if (!properFileDownloaded)
                     labelStatus.Text = "Hash not matching!";
@@ -123,6 +125,7 @@ namespace TS_SE_Tool
             buttonDownload.Visible = false;
             labelStatus.Text = "Starting Updater";
             buttonOK.Text = "OK";
+
             //copy updater
             if (File.Exists(Directory.GetCurrentDirectory() + @"\updater\updater.exe"))
             {
@@ -130,9 +133,13 @@ namespace TS_SE_Tool
             }
             else
             {
-                MessageBox.Show("Unable to find Updater.exe. Please update manually. New version located in Updater folder.", "File not exist");
+                MessageBox.Show("Unable to find Updater.exe." + Environment.NewLine + "Please update manually." + Environment.NewLine + "New version located in Updater folder.", "Updater not exist. Manual update");
                 labelStatus.Text = "Updater.exe doesn't exist";
-                return;
+
+                Process.Start("updater");
+
+                MainForm.ForseExit = true;
+                Application.Exit();
             }
 
             if (File.Exists(Directory.GetCurrentDirectory() + @"\updater.exe"))
@@ -141,12 +148,18 @@ namespace TS_SE_Tool
                 Process.Start(Directory.GetCurrentDirectory() + @"\updater.exe", "true " + NewVersion[1] + " " + Process.GetCurrentProcess().Id.ToString());
                 labelStatus.Text = "You can now finish your work.\r\nUpdate will start on exit.";
 
+                MainForm.ForseExit = true;
                 Application.Exit();
             }
             else
             {
                 MessageBox.Show("Unable to find Updater.exe. Please update manually. New version located in Updater folder.", "File not exist");
                 labelStatus.Text = "Updater.exe doesn't exist";
+
+                Process.Start("updater");
+
+                MainForm.ForseExit = true;
+                Application.Exit();
             }
 
             buttonOK.Enabled = true;
@@ -190,7 +203,7 @@ namespace TS_SE_Tool
                 }
                 else
                 {
-                    labelStatus.Text = String.Format("Hello developer =)");
+                    labelStatus.Text = "You are using a newer build than the latest release.";
 
                     SetStatusLabelvisual(visualStatus.neutral);
                 }
@@ -263,30 +276,40 @@ namespace TS_SE_Tool
         }
 
         //Download
-        private void startDownload() //async 
+        private bool startDownload()
         {
             labelStatus.ForeColor = this.ForeColor;
             labelStatus.Text = "Downloading...";
 
-            Task t = Task.Run(() => {
-                var url = Web_Utilities.External.linkDownloadVersion;
+            if(!Directory.Exists("updater"))
+            {
+                Directory.CreateDirectory("updater");
+            }    
+
+            bool downloaded = false;
+            Task t = Task.Run(() =>
+            {
+
                 var filename = Directory.GetCurrentDirectory() + @"\updater\ts.set.newversion.zip";
 
                 try
                 {
-                    using (WebClient webClient = new WebClient())
+                    using (Web_Utilities.WebClientWithTO webClient = new Web_Utilities.WebClientWithTO())
                     {
                         webClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(client_DownloadProgressChanged);
                         webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(client_DownloadFileCompleted);
-                        webClient.DownloadFile(new Uri(url), filename); //DownloadFileTaskAsync
+                        webClient.DownloadFile(new Uri(Web_Utilities.External.GetDownloadUrl(NewVersion[0])), filename);
+                        downloaded = true;
                     }
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show(ex.Message);
+                    IO_Utilities.LogWriter("Could not download fork release: " + ex.Message);
                 }
+
             });
             t.Wait();
+            return downloaded;
         }
 
         void client_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)

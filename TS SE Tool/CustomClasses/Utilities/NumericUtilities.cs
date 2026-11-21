@@ -21,6 +21,21 @@ namespace TS_SE_Tool.Utilities
 {
     public class NumericUtilities
     {
+        internal static long[] GetPlayerLevel(uint experience)
+        {
+            long threshold = 0;
+            for (int level = 0; level < Globals.PlayerLevelUps.Length; level++)
+            {
+                threshold += Globals.PlayerLevelUps[level];
+                if (experience < threshold)
+                    return new long[] { level, threshold };
+            }
+
+            int finalStep = Globals.PlayerLevelUps[Globals.PlayerLevelUps.Length - 1];
+            long extraLevels = (experience - threshold) / finalStep;
+            return new long[] { Globals.PlayerLevelUps.Length + extraLevels, threshold + (extraLevels + 1) * finalStep };
+        }
+
         public static float HexFloatToSingleFloat(string _input)
         {
             if (_input.Contains('&'))

@@ -259,3 +259,10 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+
+# Keep bundled game databases, not personal test saves or generated diagnostics.
+!TS SE Tool/gameref/cache/**/*.sdf
+/diagnostics/game*
+/diagnostics/*.exe
+/diagnostics/previous-build/
+/diagnostics/*update-fixture/
