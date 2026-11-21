@@ -1,6 +1,6 @@
 # TS-ETS2
 
-Truck Simulator Save Editor Tool, forked from LIPtoH/TS-SE-Tool for compatibility for game version 1.6x and above.
+Truck Simulator Save Editor Tool, forked from LIPtoH/TS-SE-Tool with compatibility for game version 1.6x and above.
 
 ## Description
 
