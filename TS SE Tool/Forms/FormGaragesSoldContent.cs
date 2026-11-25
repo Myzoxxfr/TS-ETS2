@@ -26,7 +26,7 @@ using TS_SE_Tool.Save.Items;
 
 namespace TS_SE_Tool
 {
-    public partial class FormGaragesSoldContent : Form
+    public partial class FormGaragesSoldContent : MaterialForm
     {
         FormMain MainForm = Application.OpenForms.OfType<FormMain>().Single();
         int SpareDrvSpaces = 0, SpareVhcSpaces = 0;

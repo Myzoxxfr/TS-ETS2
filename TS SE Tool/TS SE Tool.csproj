@@ -24,7 +24,7 @@
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <ApplicationVersion>0.3.13.0</ApplicationVersion>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
@@ -89,6 +89,7 @@
       <SpecificVersion>False</SpecificVersion>
       <Private>False</Private>
     </Reference>
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <Private>False</Private>
@@ -390,7 +391,18 @@
     <Compile Include="MethodsReadWrite.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="CustomClasses\Utilities\ProfilePaths.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="SingleInstance.cs" />
+    <Compile Include="FormMain.Layout.cs" />
+    <Compile Include="MaterialYou.cs" />
+    <Compile Include="ModernUI.cs" />
+    <Compile Include="ModernDialogs.cs" />
+    <Compile Include="MaterialChrome.cs" />
+    <Compile Include="Forms\FormProgramSettings.Theme.cs" />
+    <Compile Include="Forms\FormSettings.Theme.cs">
+      <DependentUpon>FormSettings.cs</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RMcode\PlainTXTResourceManager.cs" />
     <Compile Include="RMcode\PlainTXTResourceReader.cs" />
@@ -481,7 +493,7 @@
     <Content Include="SII_Decrypt.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="img\**\*;lang\**\*;gameref\**\*;updater\**\*">
+    <Content Include="img\**\*;lang\**\*;gameref\**\*;updater\**\*;fonts\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -505,7 +517,7 @@ xcopy /s /y "$(SolutionDir)packages\Microsoft.SqlServer.Compact.4.0.8876.1\Nativ
 if not exist "$(TargetDir)libs\amd64\" md "$(TargetDir)libs\amd64\"
 xcopy /s /y "$(SolutionDir)packages\Microsoft.SqlServer.Compact.4.0.8876.1\NativeBinaries\amd64\*.*" "$(TargetDir)libs\amd64\"
 
-ROBOCOPY "$(TargetDir) " "$(TargetDir)libs\ " /XF *.exe *.sdf *.config *.manifest *.cfg *.csv *.log *.pdb *.pdf  /XD gameref img libs logs lang dbs updater /E /IS /MOV
+ROBOCOPY "$(TargetDir) " "$(TargetDir)libs\ " /XF *.exe *.sdf *.config *.manifest *.cfg *.csv *.log *.pdb *.pdf  /XD gameref img libs logs lang dbs updater fonts /E /IS /MOV
 if %25errorlevel%25 leq 4 exit 0 else exit %25errorlevel%25</PostBuildEvent>
   </PropertyGroup>
 </Project>

@@ -49,6 +49,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ClassZipProgress.cs" />
+    <Compile Include="..\TS SE Tool\MaterialYou.cs"><Link>MaterialYou.cs</Link></Compile>
+<Compile Include="..\TS SE Tool\ModernUI.cs"><Link>ModernUI.cs</Link></Compile>
+<Compile Include="..\TS SE Tool\ModernDialogs.cs"><Link>ModernDialogs.cs</Link></Compile>
+<Compile Include="..\TS SE Tool\MaterialChrome.cs"><Link>MaterialChrome.cs</Link></Compile>
+<Compile Include="..\TS SE Tool\CustomClasses\UtilitiesExternal\FlexibleMessageBox.cs"><Link>FlexibleMessageBox.cs</Link></Compile>
     <Compile Include="extWinPos.cs" />
     <Compile Include="FormMain.cs">
       <SubType>Form</SubType>

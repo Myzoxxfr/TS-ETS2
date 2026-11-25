@@ -28,7 +28,7 @@ using System.Threading;
 
 namespace TS_SE_Tool
 {
-    public partial class FormProfileEditor : Form
+    public partial class FormProfileEditor : MaterialForm
     {
         public new FormMain ParentForm;
         FormMain MainForm = Application.OpenForms.OfType<FormMain>().Single();
@@ -111,7 +111,7 @@ namespace TS_SE_Tool
 
                         labelProfileNameValue.Text = dForm.ReturnNewName;
 
-                        MessageBox.Show("New Profile name - " + dForm.ReturnNewName);
+                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("New Profile name - " + dForm.ReturnNewName);
 
                         buttonOK.DialogResult = DialogResult.OK;
                     }
@@ -134,14 +134,14 @@ namespace TS_SE_Tool
                 {
                     if (dForm.ReturnCloningSuccessful)
                     {
-                        MessageBox.Show("New Profiles created ( " + dForm.ReturnClonedNames.Count.ToString() + " ):" +
+                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("New Profiles created ( " + dForm.ReturnClonedNames.Count.ToString() + " ):" +
                             Environment.NewLine + Environment.NewLine + string.Join(Environment.NewLine, dForm.ReturnClonedNames));
 
                         buttonOK.DialogResult = DialogResult.OK;
                     }
                     else
                     {
-                        MessageBox.Show("No profiles created due to duplicating names.");
+                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("No profiles created due to duplicating names.");
                     }   
                 }
             }
@@ -155,7 +155,7 @@ namespace TS_SE_Tool
 
             if (File.Exists(ProfilePathBackup))
             {
-                DialogResult dr = MessageBox.Show("Restoring from backup file will overwrite existing file." + Environment.NewLine +
+                DialogResult dr = JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Restoring from backup file will overwrite existing file." + Environment.NewLine +
                                                   "Select: Yes - Overwrite | No - Swap files | Cancel - Abort restoring.",
                                                   "Restoring Profile from Backup", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning);
 

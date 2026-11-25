@@ -44,7 +44,7 @@ namespace TS_SE_Tool
         private void InitializeComponent()
         {
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
-            this.buttonSave = new System.Windows.Forms.Button();
+            this.buttonSave = new TS_SE_Tool.MaterialButton();
             this.labelShowSplashOnStartup = new System.Windows.Forms.Label();
             this.labelCheckUpdatesOnStartup = new System.Windows.Forms.Label();
             this.checkBoxShowSplashOnStartup = new System.Windows.Forms.CheckBox();
@@ -131,7 +131,6 @@ namespace TS_SE_Tool
             this.checkBoxCheckUpdatesOnStartup.TabIndex = 1;
             this.checkBoxCheckUpdatesOnStartup.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.checkBoxCheckUpdatesOnStartup.UseVisualStyleBackColor = true;
-            this.checkBoxCheckUpdatesOnStartup.CheckedChanged += new System.EventHandler(this.checkBoxCheckUpdatesOnStartup_CheckedChanged);
             // 
             // FormProgramSettings
             // 

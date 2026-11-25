@@ -47,13 +47,13 @@ namespace TS_SE_Tool
             this.labelVersion = new System.Windows.Forms.Label();
             this.labelCopyright = new System.Windows.Forms.Label();
             this.labelSupportedGameVersions = new System.Windows.Forms.Label();
-            this.textBoxDescription = new System.Windows.Forms.TextBox();
+            this.textBoxDescription = new TS_SE_Tool.MaterialTextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.labelETS2version = new System.Windows.Forms.Label();
             this.labelATSversion = new System.Windows.Forms.Label();
-            this.okButton = new System.Windows.Forms.Button();
-            this.buttonSupportDeveloper = new System.Windows.Forms.Button();
+            this.okButton = new TS_SE_Tool.MaterialButton();
+            this.buttonSupportDeveloper = new TS_SE_Tool.MaterialButton();
             this.tableLayoutPanel.SuspendLayout();
             this.SuspendLayout();
             // 

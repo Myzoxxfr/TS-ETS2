@@ -26,12 +26,30 @@ using System.Threading;
 
 namespace TS_SE_Tool
 {
-    public partial class FormProgramSettings : Form
+    public partial class FormProgramSettings : MaterialForm
     {
         FormMain MainForm = Application.OpenForms.OfType<FormMain>().Single();
+        private readonly CheckBox askBeforeClosing = new CheckBox { Name = "checkBoxAskBeforeClosing", AutoSize = true, Anchor = AnchorStyles.Left | AnchorStyles.Right, CheckAlign = ContentAlignment.MiddleCenter };
+
         public FormProgramSettings()
         {
             InitializeComponent();
+            AutoScaleMode = AutoScaleMode.Dpi;
+            AutoScaleDimensions = new SizeF(96, 96);
+            Font = AppTypography.Create(9.5f);
+            ClientSize = new Size(560, 500);
+            MinimumSize = new Size(520, 470);
+            tableLayoutPanel1.Padding = new Padding(16, 8, 16, 8);
+            tableLayoutPanel1.ColumnStyles[0] = new ColumnStyle(SizeType.Percent, 85);
+            tableLayoutPanel1.ColumnStyles[1] = new ColumnStyle(SizeType.Percent, 15);
+            tableLayoutPanel1.RowStyles[1].Height = tableLayoutPanel1.RowStyles[2].Height = 40;
+            tableLayoutPanel1.RowStyles[3].Height = 40;
+            tableLayoutPanel1.RowStyles[0].Height = 12;
+            tableLayoutPanel1.RowStyles[4] = new RowStyle(SizeType.Percent, 100);
+            tableLayoutPanel1.RowStyles[5] = new RowStyle(SizeType.Absolute, 8);
+            tableLayoutPanel1.RowStyles[6].Height = 46;
+            tableLayoutPanel1.Controls.Add(new Label { Name = "labelAskBeforeClosing", Text = "Ask before closing", AutoSize = true, Anchor = AnchorStyles.Left }, 0, 3);
+            tableLayoutPanel1.Controls.Add(askBeforeClosing, 1, 3);
 
             this.Icon = Utilities.Graphics_TSSET.IconFromImage(MainForm.ProgUIImgsDict["ProgramSettings"]);
 
@@ -44,17 +62,30 @@ namespace TS_SE_Tool
             this.ResumeLayout();
 
             LoadSettings();
+            InitializeAppearanceSettings();
         }
 
         private void LoadSettings()
         {
             //Loading settings Setting checkboxes
-            checkBoxShowSplashOnStartup.Checked = Properties.Settings.Default.ShowSplashOnStartup;
+            askBeforeClosing.Checked = MainForm.ProgSettingsV.AskBeforeClosing;
+            checkBoxShowSplashOnStartup.Checked = !MainForm.ProgSettingsV.HideStartupPopup && Properties.Settings.Default.ShowSplashOnStartup;
             checkBoxCheckUpdatesOnStartup.Checked = Properties.Settings.Default.CheckUpdatesOnStartup;
+        }
+
+        internal bool ApplyProgramSettings()
+        {
+            if (!SaveThemeSetting()) return false;
+            MainForm.ProgSettingsV.HideStartupPopup = !checkBoxShowSplashOnStartup.Checked;
+            MainForm.ProgSettingsV.AskBeforeClosing = askBeforeClosing.Checked;
+            MainForm.ProgSettingsV.WriteConfigToFile();
+            MainForm.RefreshTheme();
+            return true;
         }
 
         private void SaveSettings()
         {
+            if (!ApplyProgramSettings()) return;
             Properties.Settings.Default.ShowSplashOnStartup = checkBoxShowSplashOnStartup.Checked;
             Properties.Settings.Default.CheckUpdatesOnStartup = checkBoxCheckUpdatesOnStartup.Checked;
             Properties.Settings.Default.Save();
@@ -66,17 +97,5 @@ namespace TS_SE_Tool
             SaveSettings();
         }
 
-        private void checkBoxCheckUpdatesOnStartup_CheckedChanged(object sender, EventArgs e)
-        {
-            if (checkBoxCheckUpdatesOnStartup.Checked)
-            {
-                checkBoxShowSplashOnStartup.Checked = true;
-                checkBoxShowSplashOnStartup.Enabled = false;
-            }
-            else
-            {
-                checkBoxShowSplashOnStartup.Enabled = true;
-            }
-        }
     }
 }

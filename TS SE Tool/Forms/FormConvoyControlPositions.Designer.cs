@@ -44,20 +44,20 @@ namespace TS_SE_Tool
         private void InitializeComponent()
         {
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
-            this.buttonSave = new System.Windows.Forms.Button();
+            this.buttonSave = new TS_SE_Tool.MaterialButton();
             this.listBoxLeftExistingSaves = new System.Windows.Forms.ListBox();
             this.listBoxRightNewSaves = new System.Windows.Forms.ListBox();
             this.labelExistingSaves = new System.Windows.Forms.Label();
-            this.buttonExportImport = new System.Windows.Forms.Button();
-            this.buttonMoveSaves = new System.Windows.Forms.Button();
+            this.buttonExportImport = new TS_SE_Tool.MaterialButton();
+            this.buttonMoveSaves = new TS_SE_Tool.MaterialButton();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.panel1 = new System.Windows.Forms.Panel();
             this.radioButtonNamesNone = new System.Windows.Forms.RadioButton();
             this.radioButtonNamesCustom = new System.Windows.Forms.RadioButton();
             this.radioButtonNamesOriginal = new System.Windows.Forms.RadioButton();
-            this.textBoxCustomName = new System.Windows.Forms.TextBox();
+            this.textBoxCustomName = new TS_SE_Tool.MaterialTextBox();
             this.panel2 = new System.Windows.Forms.Panel();
-            this.buttonSelectCustomThumbnail = new System.Windows.Forms.Button();
+            this.buttonSelectCustomThumbnail = new TS_SE_Tool.MaterialButton();
             this.checkBoxCustomThumbnail = new System.Windows.Forms.CheckBox();
             this.tableLayoutPanel3 = new System.Windows.Forms.TableLayoutPanel();
             this.radioButtonSelect = new System.Windows.Forms.RadioButton();

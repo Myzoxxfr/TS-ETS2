@@ -401,7 +401,6 @@ namespace TS_SE_Tool
             extraVehicles = new List<string>();
             extraDrivers = new List<string>();
 
-            VisitedCities = new List<VisitedCity>();
 
             CargoesListDB = new List<Cargo>();
             CitiesListDB = new List<string>();
@@ -444,6 +443,7 @@ namespace TS_SE_Tool
 
         public void ApplySettings()
         {
+            MaterialYou.SetAccent(ProgSettingsV.ThemeAccent);
             DistanceMultiplier = DistanceMultipliers[ProgSettingsV.DistanceMes];
             WeightMultiplier = WeightMultipliers[ProgSettingsV.WeightMes];
             checkBoxFreightMarketRandomDest.Checked = ProgSettingsV.ProposeRandom;
@@ -461,15 +461,33 @@ namespace TS_SE_Tool
             }
         }
 
+        internal void RefreshTheme()
+        {
+            MaterialYou.SetAccent(ProgSettingsV.ThemeAccent);
+            MaterialYou.StyleSkillImages(SkillImgSBG);
+            foreach (Form form in Application.OpenForms)
+            {
+                MaterialYou.Apply(form);
+                form.Invalidate(true);
+            }
+        }
+
         private void AddImagesToControls()
         {
+            toolStripMenuItemProgram.Image = MaterialIcons.Create("program");
+            toolStripMenuItemHelp.Image = MaterialIcons.Create("help");
+            menuStripMain.Font = AppTypography.Create(9.5f);
+            menuStripMain.AutoSize = false;
+            menuStripMain.Height = 40;
+            menuStripMain.Padding = new Padding(12, 6, 12, 6);
+            menuStripMain.ImageScalingSize = new Size(20, 20);
             //Main menu
             //Program
             toolStripMenuItemProgram.DropDownItems["toolStripMenuItemProgramSettings"].Image = ProgUIImgsDict["ProgramSettings"];
             toolStripMenuItemProgram.DropDownItems["toolStripMenuItemSettings"].Image = ProgUIImgsDict["Settings"];
             toolStripMenuItemProgram.DropDownItems["toolStripMenuItemExit"].Image = ProgUIImgsDict["Cross"];
             //Language
-            menuStripMain.Items["toolStripMenuItemLanguage"].Image = ProgUIImgsDict["Language"];
+            menuStripMain.Items["toolStripMenuItemLanguage"].Image = Utilities.Graphics_TSSET.ConvertBitmapToGrayscale(ProgUIImgsDict["Language"]);
             //Help
             toolStripMenuItemHelp.DropDownItems["toolStripMenuItemAbout"].Image = ProgUIImgsDict["Info"];
             toolStripMenuItemHelp.DropDownItems["toolStripMenuItemTutorial"].Image = ProgUIImgsDict["Question"];
@@ -1344,7 +1362,7 @@ namespace TS_SE_Tool
             }
             */
             //Cities
-            foreach (City _city in from x in CitiesList where !x.Disabled select x)
+            foreach (City _city in CitiesList)
             {
                 CitiesLngDict.TryGetValue(_city.CityName, out string _translated);
 
@@ -1387,18 +1405,9 @@ namespace TS_SE_Tool
         //Search index in CB by Value
         private int FindByValue (ComboBox _inputComboBox, string _value)
         {
-            DataTable _combDT = new DataTable();
-            _combDT = _inputComboBox.DataSource as DataTable;
-
-            string fcol = _combDT.Columns[0].ToString();
-
-            string _searchExpression = fcol + " = '" + _value + @"'";
-            DataRow[] _foundRows = _combDT.Select(_searchExpression);
-
-            if (_foundRows.Length > 0)
-                return 0;
-            else
-                return -1;
+            var table = _inputComboBox.DataSource as DataTable;
+            return table != null && table.Rows.Cast<DataRow>().Any(row =>
+                string.Equals(Convert.ToString(row[0]), _value, StringComparison.OrdinalIgnoreCase)) ? 0 : -1;
         }
 
         static string NullToString(object _value)

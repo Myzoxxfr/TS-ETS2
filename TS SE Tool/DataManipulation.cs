@@ -35,7 +35,7 @@ using TS_SE_Tool.Save.Items;
 
 namespace TS_SE_Tool
 {
-    public partial class FormMain : Form
+    public partial class FormMain : MaterialForm
     {
         private void NewPrepareData()
         {
@@ -69,11 +69,7 @@ namespace TS_SE_Tool
 
             //Exclude company from city if no jobs assigned by game
             foreach (City city in CitiesList)
-            {
                 city.ExcludeCompany();
-                if (VisitedCities.Exists(x => x.Name == city.CityName))
-                    city.Visited = true;
-            }
 
             //LoadAdditionalCargo(); //REWRITE
 
@@ -410,12 +406,20 @@ namespace TS_SE_Tool
 
         private void PrepareVisitedCitiesInitial()
         {
-            int cityid = 0;
-            foreach (string city in SiiNunitData.Economy.visited_cities)
+            var economy = SiiNunitData.Economy;
+            var visited = new HashSet<string>(economy.visited_cities, StringComparer.Ordinal);
+            var known = new HashSet<string>(CitiesList.Select(city => city.CityName), StringComparer.Ordinal);
+            // Some map cities appear in the save without an active freight company.
+            var extraCities = visited.Concat(GaragesList.Select(garage => garage.GarageName))
+                .Concat(new[] { economy.last_visited_city });
+            foreach (string name in extraCities)
             {
-                VisitedCities.Add(new VisitedCity(city, SiiNunitData.Economy.visited_cities_count[cityid], true));
-                cityid++;
+                if (!string.IsNullOrWhiteSpace(name) && name != "null" && known.Add(name))
+                    CitiesList.Add(new City(name));
             }
+
+            foreach (City city in CitiesList)
+                city.Visited = visited.Contains(city.CityName);
         }
 
         private void PreparePlayerDictionariesInitial()
@@ -519,46 +523,21 @@ namespace TS_SE_Tool
 
         private void PrepareVisitedCitiesWrite()
         {
+            var economy = SiiNunitData.Economy;
             foreach (City city in CitiesList)
             {
-                VisitedCity temp = VisitedCities.Find(x => x.Name == city.CityName);
-
-                if (temp != null)
+                int index = economy.visited_cities.IndexOf(city.CityName);
+                if (city.Visited && index < 0)
                 {
-                    if (!city.Visited)
-                        VisitedCities[VisitedCities.IndexOf(temp)].VisitCount = 0;
+                    economy.visited_cities.Add(city.CityName);
+                    economy.visited_cities_count.Add(1);
                 }
-                else
+                else if (!city.Visited && index >= 0)
                 {
-                    if (city.Visited)
-                        VisitedCities.Add(new VisitedCity(city.CityName, 1, true));
-                    else
-                        VisitedCities.Add(new VisitedCity(city.CityName, 0, false));
+                    economy.visited_cities.RemoveAt(index);
+                    economy.visited_cities_count.RemoveAt(index);
                 }
             }
-
-            foreach (VisitedCity vc in VisitedCities)
-            {
-                if (vc.Visited)
-                {
-                    if (!SiiNunitData.Economy.visited_cities.Contains(vc.Name))
-                    {
-                        SiiNunitData.Economy.visited_cities.Add(vc.Name);
-                        SiiNunitData.Economy.visited_cities_count.Add(vc.VisitCount);
-                    }
-                }
-                else
-                {
-                    if (SiiNunitData.Economy.visited_cities.Contains(vc.Name))
-                    {
-                        int idx = SiiNunitData.Economy.visited_cities.IndexOf(vc.Name);
-
-                        SiiNunitData.Economy.visited_cities.RemoveAt(idx);
-                        SiiNunitData.Economy.visited_cities_count.RemoveAt(idx);
-                    }
-                }
-            }
-
         }
 
         private void PrepareCargoTrailerDefsVariantsLists()
@@ -1247,12 +1226,12 @@ namespace TS_SE_Tool
             catch (SqlCeException sqlexception)
             {
                 UpdateStatusBarMessage.ShowStatusMessage(SMStatus.Error, "error_sql_exception");
-                MessageBox.Show(sqlexception.Message + "\r\n" + _sql_string, "SQL Exception. Update DB", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                JR.Utils.GUI.Forms.FlexibleMessageBox.Show(sqlexception.Message + "\r\n" + _sql_string, "SQL Exception. Update DB", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
                 UpdateStatusBarMessage.ShowStatusMessage(SMStatus.Error, "error_exception");
-                MessageBox.Show(ex.Message, "Exception.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                JR.Utils.GUI.Forms.FlexibleMessageBox.Show(ex.Message, "Exception.", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -1281,12 +1260,12 @@ namespace TS_SE_Tool
                     catch (SqlCeException sqlexception)
                     {
                         UpdateStatusBarMessage.ShowStatusMessage(SMStatus.Error, "error_sql_exception");
-                        MessageBox.Show(sqlexception.Message, "SQL Exception. Create DB", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show(sqlexception.Message, "SQL Exception. Create DB", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                     catch (Exception ex)
                     {
                         UpdateStatusBarMessage.ShowStatusMessage(SMStatus.Error, "error_exception");
-                        MessageBox.Show(ex.Message, "Exception.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show(ex.Message, "Exception.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
             }
@@ -1324,14 +1303,14 @@ namespace TS_SE_Tool
             catch (SqlCeException sqlexception)
             {
                 UpdateStatusBarMessage.ShowStatusMessage(SMStatus.Error, "error_sql_exception");
-                MessageBox.Show(sqlexception.Message, "SQL Exception. Load all Distances", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                JR.Utils.GUI.Forms.FlexibleMessageBox.Show(sqlexception.Message, "SQL Exception. Load all Distances", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                 IO_Utilities.LogWriter("Getting Data went wrong");
             }
             catch (Exception ex)
             {
                 UpdateStatusBarMessage.ShowStatusMessage(SMStatus.Error, "error_exception");
-                MessageBox.Show(ex.Message, "Exception.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                JR.Utils.GUI.Forms.FlexibleMessageBox.Show(ex.Message, "Exception.", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                 IO_Utilities.LogWriter("Getting Data went wrong");
             }
@@ -1959,7 +1938,7 @@ namespace TS_SE_Tool
                             }
                             catch (SqlCeException sqlexception)
                             {
-                                MessageBox.Show(sqlexception.Message + " | " + sqlexception.ErrorCode, "SQL Exception.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                JR.Utils.GUI.Forms.FlexibleMessageBox.Show(sqlexception.Message + " | " + sqlexception.ErrorCode, "SQL Exception.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             }
 
                             if (_rowsupdated == 0)
@@ -2288,12 +2267,12 @@ namespace TS_SE_Tool
                     catch (SqlCeException sqlexception)
                     {
                         UpdateStatusBarMessage.ShowStatusMessage(SMStatus.Error, "error_sql_exception");
-                        MessageBox.Show(sqlexception.Message, "SQL Exception. Ext Data", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show(sqlexception.Message, "SQL Exception. Ext Data", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                     catch (Exception ex)
                     {
                         UpdateStatusBarMessage.ShowStatusMessage(SMStatus.Error, "error_exception");
-                        MessageBox.Show(ex.Message, "Exception.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show(ex.Message, "Exception.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
             }
@@ -2344,7 +2323,7 @@ namespace TS_SE_Tool
                             }
                             catch (SqlCeException sqlexception)
                             {
-                                MessageBox.Show(sqlexception.Message + " | " + sqlexception.ErrorCode, "SQL Exception.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                JR.Utils.GUI.Forms.FlexibleMessageBox.Show(sqlexception.Message + " | " + sqlexception.ErrorCode, "SQL Exception.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             }
                         }
 
@@ -2378,7 +2357,7 @@ namespace TS_SE_Tool
                             }
                             catch (SqlCeException sqlexception)
                             {
-                                MessageBox.Show(sqlexception.Message + " | " + sqlexception.ErrorCode, "SQL Exception.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                JR.Utils.GUI.Forms.FlexibleMessageBox.Show(sqlexception.Message + " | " + sqlexception.ErrorCode, "SQL Exception.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             }
 
                             foreach (string body_types in tempcargo.BodyTypes)
@@ -2410,7 +2389,7 @@ namespace TS_SE_Tool
                                 }
                                 catch (SqlCeException sqlexception)
                                 {
-                                    MessageBox.Show(sqlexception.Message + " | " + sqlexception.ErrorCode, "SQL Exception.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    JR.Utils.GUI.Forms.FlexibleMessageBox.Show(sqlexception.Message + " | " + sqlexception.ErrorCode, "SQL Exception.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                 }
                             }
 
@@ -2466,7 +2445,7 @@ namespace TS_SE_Tool
                             }
                             catch (SqlCeException sqlexception)
                             {
-                                MessageBox.Show(sqlexception.Message + " | " + sqlexception.ErrorCode, "SQL Exception.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                JR.Utils.GUI.Forms.FlexibleMessageBox.Show(sqlexception.Message + " | " + sqlexception.ErrorCode, "SQL Exception.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             }
                         }
 
@@ -2484,7 +2463,7 @@ namespace TS_SE_Tool
                             }
                             catch (SqlCeException sqlexception)
                             {
-                                MessageBox.Show(sqlexception.Message + " | " + sqlexception.ErrorCode, "SQL Exception.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                JR.Utils.GUI.Forms.FlexibleMessageBox.Show(sqlexception.Message + " | " + sqlexception.ErrorCode, "SQL Exception.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             }
 
                             updatecommandText = "SELECT ID_company FROM [CompaniesTable] WHERE CompanyName = '" + tempCompany.CompanyName + "' ";
@@ -2529,14 +2508,14 @@ namespace TS_SE_Tool
                                         }
                                         catch (SqlCeException sqlexception)
                                         {
-                                            MessageBox.Show(sqlexception.Message + " | " + sqlexception.ErrorCode, "SQL Exception.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                            JR.Utils.GUI.Forms.FlexibleMessageBox.Show(sqlexception.Message + " | " + sqlexception.ErrorCode, "SQL Exception.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                         }
                                     }
 
                                 }
                                 catch (SqlCeException sqlexception)
                                 {
-                                    MessageBox.Show(sqlexception.Message + " | " + sqlexception.ErrorCode, "SQL Exception.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    JR.Utils.GUI.Forms.FlexibleMessageBox.Show(sqlexception.Message + " | " + sqlexception.ErrorCode, "SQL Exception.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                 }
 
 
@@ -2571,14 +2550,14 @@ namespace TS_SE_Tool
                                         }
                                         catch (SqlCeException sqlexception)
                                         {
-                                            MessageBox.Show(sqlexception.Message + " | " + sqlexception.ErrorCode, "SQL Exception.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                            JR.Utils.GUI.Forms.FlexibleMessageBox.Show(sqlexception.Message + " | " + sqlexception.ErrorCode, "SQL Exception.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                         }
                                     }
 
                                 }
                                 catch (SqlCeException sqlexception)
                                 {
-                                    MessageBox.Show(sqlexception.Message + " | " + sqlexception.ErrorCode, "SQL Exception.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    JR.Utils.GUI.Forms.FlexibleMessageBox.Show(sqlexception.Message + " | " + sqlexception.ErrorCode, "SQL Exception.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                 }
 
 

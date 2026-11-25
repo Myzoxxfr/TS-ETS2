@@ -43,13 +43,13 @@ namespace TS_SE_Tool
         /// </summary>
         private void InitializeComponent()
         {
-            this.groupBoxProfileUserColors = new System.Windows.Forms.GroupBox();
+            this.groupBoxProfileUserColors = new TS_SE_Tool.MaterialGroupBox();
             this.panelProfileUserColors = new System.Windows.Forms.Panel();
-            this.groupBoxImportedColors = new System.Windows.Forms.GroupBox();
+            this.groupBoxImportedColors = new TS_SE_Tool.MaterialGroupBox();
             this.panelImportedColors = new System.Windows.Forms.Panel();
-            this.buttonImport = new System.Windows.Forms.Button();
-            this.buttonExport = new System.Windows.Forms.Button();
-            this.buttonApply = new System.Windows.Forms.Button();
+            this.buttonImport = new TS_SE_Tool.MaterialButton();
+            this.buttonExport = new TS_SE_Tool.MaterialButton();
+            this.buttonApply = new TS_SE_Tool.MaterialButton();
             this.tableLayoutPanelMain = new System.Windows.Forms.TableLayoutPanel();
             this.panelShareColorsHelpDragDrop = new System.Windows.Forms.Panel();
             this.groupBoxProfileUserColors.SuspendLayout();

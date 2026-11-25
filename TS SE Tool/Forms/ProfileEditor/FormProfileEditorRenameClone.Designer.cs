@@ -45,13 +45,13 @@ namespace TS_SE_Tool
         {
             this.components = new System.ComponentModel.Container();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
-            this.buttonAccept = new System.Windows.Forms.Button();
-            this.buttonCancel = new System.Windows.Forms.Button();
+            this.buttonAccept = new TS_SE_Tool.MaterialButton();
+            this.buttonCancel = new TS_SE_Tool.MaterialButton();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanelControls = new System.Windows.Forms.TableLayoutPanel();
             this.labelNewName = new System.Windows.Forms.Label();
-            this.textBoxNewName = new System.Windows.Forms.TextBox();
-            this.groupBoxOptions = new System.Windows.Forms.GroupBox();
+            this.textBoxNewName = new TS_SE_Tool.MaterialTextBox();
+            this.groupBoxOptions = new TS_SE_Tool.MaterialGroupBox();
             this.checkBoxFullCloning = new System.Windows.Forms.CheckBox();
             this.checkBoxMutiCloning = new System.Windows.Forms.CheckBox();
             this.checkBoxCreateBackup = new System.Windows.Forms.CheckBox();

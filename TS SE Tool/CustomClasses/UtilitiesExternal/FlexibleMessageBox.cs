@@ -278,7 +278,7 @@ namespace JR.Utils.GUI.Forms
         /// The form to show the customized message box.
         /// It is defined as an internal class to keep the public interface of the FlexibleMessageBox clean.
         /// </summary>
-        class FlexibleMessageBoxForm : Form
+        class FlexibleMessageBoxForm : TS_SE_Tool.MaterialForm
         {
             #region Form-Designer generated code
 
@@ -307,13 +307,13 @@ namespace JR.Utils.GUI.Forms
             private void InitializeComponent()
             {
                 this.components = new System.ComponentModel.Container();
-                this.button1 = new System.Windows.Forms.Button();
+                this.button1 = new TS_SE_Tool.MaterialButton();
                 this.richTextBoxMessage = new System.Windows.Forms.RichTextBox();
                 this.FlexibleMessageBoxFormBindingSource = new System.Windows.Forms.BindingSource(this.components);
                 this.panel1 = new System.Windows.Forms.Panel();
                 this.pictureBoxForIcon = new System.Windows.Forms.PictureBox();
-                this.button2 = new System.Windows.Forms.Button();
-                this.button3 = new System.Windows.Forms.Button();
+                this.button2 = new TS_SE_Tool.MaterialButton();
+                this.button3 = new TS_SE_Tool.MaterialButton();
                 ((System.ComponentModel.ISupportInitialize)(this.FlexibleMessageBoxFormBindingSource)).BeginInit();
                 this.panel1.SuspendLayout();
                 ((System.ComponentModel.ISupportInitialize)(this.pictureBoxForIcon)).BeginInit();
@@ -630,6 +630,11 @@ namespace JR.Utils.GUI.Forms
             /// <param name="defaultButton">The default button.</param>
             private static void SetDialogButtons(FlexibleMessageBoxForm flexibleMessageBoxForm, MessageBoxButtons buttons, MessageBoxDefaultButton defaultButton)
             {
+                // Unused designer buttons must not contribute their default OK result.
+                flexibleMessageBoxForm.button1.DialogResult = DialogResult.None;
+                flexibleMessageBoxForm.button2.DialogResult = DialogResult.None;
+                flexibleMessageBoxForm.button3.DialogResult = DialogResult.None;
+
                 //Set the buttons visibilities and texts
                 switch (buttons)
                 {
@@ -855,41 +860,21 @@ namespace JR.Utils.GUI.Forms
             /// <returns>The dialog result.</returns>
             public static DialogResult Show(IWin32Window owner, string text, string caption, MessageBoxButtons buttons, MessageBoxIcon icon, MessageBoxDefaultButton defaultButton, SizeGripStyle gripStyle)
             {
-                //Create a new instance of the FlexibleMessageBox form
-                var flexibleMessageBoxForm = new FlexibleMessageBoxForm();
-                flexibleMessageBoxForm.ShowInTaskbar = false;
+                using (var dialog = CreateDialog(text, caption, buttons, icon, defaultButton))
+                    return owner == null ? dialog.ShowDialog() : dialog.ShowDialog(owner);
+            }
 
-                //Bind the caption and the message text
-                flexibleMessageBoxForm.CaptionText = caption;
-                flexibleMessageBoxForm.MessageText = text;
-                flexibleMessageBoxForm.FlexibleMessageBoxFormBindingSource.DataSource = flexibleMessageBoxForm;
-
-                //Set the buttons visibilities and texts. Also set a default button.
-                SetDialogButtons(flexibleMessageBoxForm, buttons, defaultButton);
-
-                //Set the dialogs icon. When no icon is used: Correct placement and width of rich text box.
-                SetDialogIcon(flexibleMessageBoxForm, icon);
-
-                //Set the font for all controls
-                flexibleMessageBoxForm.Font = FONT;
-                flexibleMessageBoxForm.richTextBoxMessage.Font = FONT;
-
-                //Change grip style
-                flexibleMessageBoxForm.SizeGripStyle = gripStyle;
-
-                //Calculate the dialogs start size (Try to auto-size width to show longest text row). Also set the maximum dialog size. 
-                SetDialogSizes(flexibleMessageBoxForm, text, caption);
-
-                if (gripStyle == SizeGripStyle.Hide)
+            private static TS_SE_Tool.MaterialMessageDialog CreateDialog(string text, string caption, MessageBoxButtons buttons,
+                MessageBoxIcon icon, MessageBoxDefaultButton defaultButton)
+            {
+                using (var legacy = new FlexibleMessageBoxForm())
                 {
-                    flexibleMessageBoxForm.FormBorderStyle = FormBorderStyle.Fixed3D;
+                    SetDialogButtons(legacy, buttons, defaultButton);
+                    var labels = new[] { legacy.button1, legacy.button2, legacy.button3 }
+                        .Where(button => button.DialogResult != DialogResult.None)
+                        .ToDictionary(button => button.DialogResult, button => button.Text);
+                    return new TS_SE_Tool.MaterialMessageDialog(text, caption, buttons, icon, defaultButton, labels);
                 }
-
-                //Set the dialogs start position when given. Otherwise center the dialog on the current screen.
-                SetDialogStartPosition(flexibleMessageBoxForm, owner);
-
-                //Show the dialog
-                return flexibleMessageBoxForm.ShowDialog(owner);
             }
 
             #endregion

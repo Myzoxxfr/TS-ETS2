@@ -33,7 +33,7 @@ using TS_SE_Tool.Utilities;
 
 namespace TS_SE_Tool
 {
-    public partial class FormCheckUpdates : Form
+    public partial class FormCheckUpdates : MaterialForm
     {
         FormMain MainForm = Application.OpenForms.OfType<FormMain>().Single();
 
@@ -56,10 +56,13 @@ namespace TS_SE_Tool
 
             else if(FormMode == "download")
             {
-                labelStatus.Text = labelStatus.Text = String.Format("New version {0} available!\r\nClick on Download to update.", NewVersion[0]);
+                labelStatus.Text = String.Format("Release {0} available.", NewVersion[0]);
+                if (string.IsNullOrEmpty(NewVersion[1])) buttonDownload.Text = "Open release page";
 
                 buttonDownload.Visible = true;
                 buttonDownload.Click += new EventHandler(this.buttonDownload_Click);
+                buttonOK.Click += new EventHandler(this.buttonOk_Click);
+                buttonOK.Enabled = true;
 
                 this.Size = new Size(300, 180);
             }
@@ -72,6 +75,11 @@ namespace TS_SE_Tool
 
         private void buttonDownload_Click(object sender, EventArgs e)
         {
+            if (string.IsNullOrEmpty(NewVersion[1]))
+            {
+                Process.Start(Web_Utilities.External.linkGithubReleasesLatest);
+                return;
+            }
             this.Size = new Size(300, 225);
 
             buttonDownload.Enabled = false;
@@ -113,7 +121,7 @@ namespace TS_SE_Tool
             }
             else
             {
-                MessageBox.Show("Unable to download new version. Try later or download new version manually.", "Download failed");
+                JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Unable to download new version. Try later or download new version manually.", "Download failed");
                 this.Close();
                 this.DialogResult = DialogResult.Abort;
             }
@@ -133,7 +141,7 @@ namespace TS_SE_Tool
             }
             else
             {
-                MessageBox.Show("Unable to find Updater.exe." + Environment.NewLine + "Please update manually." + Environment.NewLine + "New version located in Updater folder.", "Updater not exist. Manual update");
+                JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Unable to find Updater.exe." + Environment.NewLine + "Please update manually." + Environment.NewLine + "New version located in Updater folder.", "Updater not exist. Manual update");
                 labelStatus.Text = "Updater.exe doesn't exist";
 
                 Process.Start("updater");
@@ -153,7 +161,7 @@ namespace TS_SE_Tool
             }
             else
             {
-                MessageBox.Show("Unable to find Updater.exe. Please update manually. New version located in Updater folder.", "File not exist");
+                JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Unable to find Updater.exe. Please update manually. New version located in Updater folder.", "File not exist");
                 labelStatus.Text = "Updater.exe doesn't exist";
 
                 Process.Start("updater");
@@ -170,9 +178,9 @@ namespace TS_SE_Tool
         {
             labelStatus.Text = "Checking for updates";
 
-            NewVersion = await Task.Run(() => Web_Utilities.External.CheckNewVersionAvailability(labelStatus));
+            NewVersion = await Task.Run(() => Web_Utilities.External.CheckNewVersionAvailability());
 
-            if (NewVersion != null && NewVersion[0] != "" && NewVersion[1] != "")
+            if (NewVersion != null)
             {
                 bool? betterVersion = false;
                 betterVersion = Web_Utilities.External.CheckNewVersionStatus(NewVersion);
@@ -200,6 +208,7 @@ namespace TS_SE_Tool
 
                         buttonDownload.Text = "Download && Repair";
                     }
+                    if (string.IsNullOrEmpty(NewVersion[1])) buttonDownload.Text = "Open release page";
                 }
                 else
                 {
@@ -233,7 +242,7 @@ namespace TS_SE_Tool
                 case visualStatus.neutral:
                     {
                         labelStatus.ForeColor = this.ForeColor;
-                        labelStatus.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 204);
+                        labelStatus.Font = AppTypography.Create(8.25F, FontStyle.Regular);
 
                         break;
                     }
@@ -241,14 +250,14 @@ namespace TS_SE_Tool
                 case visualStatus.good:
                     {
                         labelStatus.ForeColor = Color.LimeGreen;
-                        labelStatus.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
+                        labelStatus.Font = AppTypography.Create(8.25F, FontStyle.Bold);
 
                         break;
                     }
                 case visualStatus.bad:
                     {
                         labelStatus.ForeColor = Color.Crimson;
-                        labelStatus.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
+                        labelStatus.Font = AppTypography.Create(8.25F, FontStyle.Bold);
 
                         break;
                     }

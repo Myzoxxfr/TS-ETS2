@@ -70,7 +70,7 @@ namespace TS_SE_Tool
 
         private void FillFormCompanyControls()
         {
-            pictureBoxCompanyLogo.Image = Utilities.Graphics_TSSET.ddsImgLoader(@"img\" + GameType + @"\player_logo\" + MainSaveFileProfileData.Logo + ".dds", 94, 94).images[0];
+            pictureBoxCompanyLogo.Image = LoadCompanyLogo(MainSaveFileProfileData.Logo, GameType);
 
             textBoxUserCompanyCompanyName.Text = MainSaveFileProfileData.CompanyName.Value;
 
@@ -236,7 +236,7 @@ namespace TS_SE_Tool
                 if (txtbx.TextLength == 0)
                 {
                     // Cancel the event and select the text to be corrected by the user.
-                    MessageBox.Show("Company name is empty." + Environment.NewLine + "It must contain at least 1 letter. ", "Company name", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Company name is empty." + Environment.NewLine + "It must contain at least 1 letter. ", "Company name", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     e.Cancel = true;
                 }
         }
@@ -402,22 +402,20 @@ namespace TS_SE_Tool
             listBoxVisitedCities.BeginUpdate();
             listBoxVisitedCities.Items.Clear();
 
-            if (CitiesList.Count <= 0)
-                return;
-
-            int vicited = 0;
-            foreach (City vc in from x in CitiesList where !x.Disabled select x)
+            int visited = 0;
+            foreach (City city in CitiesList)
             {
-                if (vc.Visited)
-                    vicited++;
+                if (city.Visited)
+                    visited++;
 
-                listBoxVisitedCities.Items.Add(vc);
+                listBoxVisitedCities.Items.Add(city);
             }
 
-            listBoxVisitedCities.TopIndex = _vindex;
+            if (listBoxVisitedCities.Items.Count > 0)
+                listBoxVisitedCities.TopIndex = Math.Min(_vindex, listBoxVisitedCities.Items.Count - 1);
             listBoxVisitedCities.EndUpdate();
 
-            labelUserCompanyVisitedCitiesCurrent.Text = vicited.ToString();
+            labelUserCompanyVisitedCitiesCurrent.Text = visited.ToString();
             labelUserCompanyVisitedCitiesTotal.Text = listBoxVisitedCities.Items.Count.ToString();
         }
 
@@ -428,13 +426,15 @@ namespace TS_SE_Tool
         private void listBoxVisitedCities_MeasureItem(object sender, MeasureItemEventArgs e)
         {
             // Get the ListBox and the item.
-            e.ItemHeight = (int)(VisitedCitiesPictureHeight + 2 * VisitedCitiesItemMargin);
+            e.ItemHeight = Math.Max(48, ((Control)sender).Font.Height * 2 + 12);
         }
 
         private void listBoxVisitedCities_DrawItem(object sender, DrawItemEventArgs e)
         {
+            e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
             // Get the ListBox and the item.
             ListBox lst = sender as ListBox;
+            int contentRight = Math.Min(e.Bounds.Right, lst.ClientRectangle.Right - SystemInformation.VerticalScrollBarWidth - 4);
 
             City vc = (City)lst.Items[e.Index];
 
@@ -444,8 +444,8 @@ namespace TS_SE_Tool
             StringFormat format = new StringFormat();
 
             Brush br;
-            Font RegularFont = new Font(this.Font.FontFamily, 9f),
-                 BoldFont = new Font(this.Font, FontStyle.Bold);
+            Font RegularFont = new Font(e.Font.FontFamily, 9f),
+                 BoldFont = new Font(e.Font, FontStyle.Bold);
 
             Image cityicon;
             float scale, picture_width;
@@ -516,7 +516,7 @@ namespace TS_SE_Tool
 
             itemSize = e.Graphics.MeasureString(txt, BoldFont);
 
-            x = e.Bounds.Right - itemSize.Width - GarageItemMargin;
+            x = contentRight - itemSize.Width - GarageItemMargin;
             y = e.Bounds.Top + (e.Bounds.Bottom - e.Bounds.Top - itemSize.Height) / 2 + 1;
 
             layout_rect = new RectangleF(x, y, itemSize.Width, itemSize.Height);
@@ -605,16 +605,18 @@ namespace TS_SE_Tool
         private void listBoxGarages_MeasureItem(object sender, MeasureItemEventArgs e)
         {
             // Get the ListBox and the item.
-            e.ItemHeight = (int)(GaragePictureHeight + 2 * GarageItemMargin);
+            e.ItemHeight = Math.Max(48, ((Control)sender).Font.Height * 2 + 12);
         }
 
         private void listBoxGarages_DrawItem(object sender, DrawItemEventArgs e)
         {
+            e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
             if (e.Index == -1)
                 return;
 
             // Get the ListBox and the item.
             ListBox lst = sender as ListBox;
+            int contentRight = Math.Min(e.Bounds.Right, lst.ClientRectangle.Right - SystemInformation.VerticalScrollBarWidth - 4);
 
             Garages grg = (Garages)lst.Items[e.Index];
 
@@ -626,8 +628,8 @@ namespace TS_SE_Tool
             StringFormat format = new StringFormat();
 
             Brush brush;
-            Font RegularFontSized = new Font(this.Font.FontFamily, 10f),
-                 BoldFont = new Font(this.Font, FontStyle.Bold);
+            Font RegularFontSized = new Font(e.Font.FontFamily, 10f),
+                 BoldFont = new Font(e.Font, FontStyle.Bold);
 
             Image grgicon;
             float scale, picture_width;
@@ -703,7 +705,7 @@ namespace TS_SE_Tool
 
             itemSize = e.Graphics.MeasureString(txt, BoldFont);
 
-            x = e.Bounds.Right - itemSize.Width - GarageItemMargin;
+            x = contentRight - itemSize.Width - GarageItemMargin;
 
             layout_rect = new RectangleF(x, y, itemSize.Width, itemSize.Height);
 
@@ -718,7 +720,7 @@ namespace TS_SE_Tool
 
             txt = grg.GetStatusString();
 
-            itemSize = e.Graphics.MeasureString(txt, this.Font);
+            itemSize = e.Graphics.MeasureString(txt, e.Font);
 
             x = e.Bounds.Left + picture_width + GarageItemMargin * 3;
             y = e.Bounds.Bottom - itemSize.Height - GarageItemMargin * 1;
@@ -726,7 +728,7 @@ namespace TS_SE_Tool
             layout_rect = new RectangleF(x, y, itemSize.Width, itemSize.Height);
 
             // Draw the text.
-            e.Graphics.DrawString(txt, this.Font, brush, layout_rect);
+            e.Graphics.DrawString(txt, e.Font, brush, layout_rect);
 
             //===
 
@@ -752,16 +754,16 @@ namespace TS_SE_Tool
 
                 txt = String.Format("{0}: {1} / {2} {3}: {4} / {5} {6}: {7}", stringV, curVeh, grg.Vehicles.Count, stringD, curDr, grg.Drivers.Count, stringT, grg.Trailers.Count);
 
-                itemSize = e.Graphics.MeasureString(txt, this.Font);
+                itemSize = e.Graphics.MeasureString(txt, e.Font);
 
-                x = e.Bounds.Right - itemSize.Width - GarageItemMargin * 1;
+                x = contentRight - itemSize.Width - GarageItemMargin * 1;
 
                 layout_rect = new RectangleF(x, y, itemSize.Width, itemSize.Height);
 
                 format.Alignment = StringAlignment.Far;
 
                 // Draw
-                e.Graphics.DrawString(txt, this.Font, brush, layout_rect, format);
+                e.Graphics.DrawString(txt, e.Font, brush, layout_rect, format);
             }
 
             //===
@@ -1037,13 +1039,15 @@ namespace TS_SE_Tool
         private void listBoxUserCompanyDrivers_MeasureItem(object sender, MeasureItemEventArgs e)
         {
             // Get the ListBox and the item.
-            e.ItemHeight = (int)(GaragePictureHeight + 2 * GarageItemMargin);
+            e.ItemHeight = Math.Max(48, ((Control)sender).Font.Height * 2 + 12);
         }
 
         private void listBoxUserCompanyDrivers_DrawItem(object sender, DrawItemEventArgs e)
         {
+            e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
             // Get the ListBox and the item.
             ListBox lst = sender as ListBox;
+            int contentRight = Math.Min(e.Bounds.Right, lst.ClientRectangle.Right - SystemInformation.VerticalScrollBarWidth - 4);
 
             Driver driver = (Driver)lst.Items[e.Index];
 
@@ -1052,8 +1056,8 @@ namespace TS_SE_Tool
             StringFormat format = new StringFormat();
 
             Brush br;
-            Font RegularFont = new Font(this.Font.FontFamily, 9f),
-                 BoldFont = new Font(this.Font.FontFamily, 9f, FontStyle.Bold);
+            Font RegularFont = new Font(e.Font.FontFamily, 9f),
+                 BoldFont = new Font(e.Font.FontFamily, 9f, FontStyle.Bold);
 
             Image itemIcon = new Bitmap(1, 1);
             float scale, scale2, picture_width;
@@ -1154,7 +1158,7 @@ namespace TS_SE_Tool
 
                     scale = VisitedCitiesPictureHeight / (itemIcon.Height + 4);
 
-                    x = e.Bounds.Right - (itemIcon.Width * scale2 + GarageItemMargin) * (iconPos);
+                    x = contentRight - (itemIcon.Width * scale2 + GarageItemMargin) * (iconPos);
                     y = e.Bounds.Top + GarageItemMargin;
 
                     dest_rect = new RectangleF(x + 2, y, itemIcon.Width * scale2, itemIcon.Height * scale2);
@@ -1172,7 +1176,7 @@ namespace TS_SE_Tool
                     e.Graphics.DrawImage(itemIcon, dest_rect, source_rect, GraphicsUnit.Pixel);
 
                     // Draw the text
-                    e.Graphics.DrawString(_lvl.ToString(), BoldFont, new SolidBrush(Color.FromArgb(0xff, 0x11, 0x11, 0x11)), x, y + 15);
+                    e.Graphics.DrawString(_lvl.ToString(), BoldFont, new SolidBrush(MaterialYou.TextOn(MaterialYou.Mix(MaterialYou.Primary, Color.White, 0.18))), x, y + 15);
 
                     //
                     iconPos++;

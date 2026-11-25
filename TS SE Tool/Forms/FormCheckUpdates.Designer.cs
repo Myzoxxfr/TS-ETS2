@@ -44,9 +44,9 @@ namespace TS_SE_Tool
         private void InitializeComponent()
         {
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
-            this.buttonOK = new System.Windows.Forms.Button();
+            this.buttonOK = new TS_SE_Tool.MaterialButton();
             this.labelStatus = new System.Windows.Forms.Label();
-            this.buttonDownload = new System.Windows.Forms.Button();
+            this.buttonDownload = new TS_SE_Tool.MaterialButton();
             this.progressBarDownload = new System.Windows.Forms.ProgressBar();
             this.tableLayoutPanel1.SuspendLayout();
             this.SuspendLayout();

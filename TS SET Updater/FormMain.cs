@@ -15,7 +15,7 @@ using System.Security.Cryptography;
 namespace TS_SET_Updater
 {
     
-    public partial class FormMain : Form
+    public partial class FormMain : TS_SE_Tool.MaterialForm
     {
         bool updateStatus = false;
         int ProcessID = -1;
@@ -111,7 +111,7 @@ namespace TS_SET_Updater
                     }
                     catch
                     {
-                        MessageBox.Show("EXE file missing.", "File not exist");
+                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("EXE file missing.", "File not exist");
                     }
                     finally
                     {
@@ -121,7 +121,7 @@ namespace TS_SET_Updater
                 else
                 {
                     labelStatus.Text = "Error";
-                    MessageBox.Show("Update file failed integrity check. Please update manually of try again." + Environment.NewLine +
+                    JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Update file failed integrity check. Please update manually of try again." + Environment.NewLine +
                         "Expected Hash: " + fileHASHold + Environment.NewLine + "Calculated Hash: " + fileHASHnew, "File was corrupted");
                     Application.Exit();
                 }
@@ -129,7 +129,7 @@ namespace TS_SET_Updater
             else
             {
                 labelStatus.Text = "Error";
-                MessageBox.Show("Unable to find Update files. Please update manually.", "File not exist");
+                JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Unable to find Update files. Please update manually.", "File not exist");
                 Application.Exit();
             }
         }
@@ -156,7 +156,7 @@ namespace TS_SET_Updater
                 zipReadingStream.Close();
             }
             else
-                MessageBox.Show("zipReadingStream null");
+                JR.Utils.GUI.Forms.FlexibleMessageBox.Show("zipReadingStream null");
         }
 
         private bool checkFileHash(string _filepath, string _hashtocompare)

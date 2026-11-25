@@ -30,15 +30,15 @@
         {
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.panelLicensePlatePreview = new System.Windows.Forms.Panel();
-            this.textBoxLicensePlateNumber = new System.Windows.Forms.TextBox();
-            this.textBoxLicensePlateCountry = new System.Windows.Forms.TextBox();
+            this.textBoxLicensePlateNumber = new TS_SE_Tool.MaterialTextBox();
+            this.textBoxLicensePlateCountry = new TS_SE_Tool.MaterialTextBox();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.buttonCancel = new System.Windows.Forms.Button();
-            this.buttonOk = new System.Windows.Forms.Button();
+            this.buttonCancel = new TS_SE_Tool.MaterialButton();
+            this.buttonOk = new TS_SE_Tool.MaterialButton();
             this.labelLicensePlate = new System.Windows.Forms.Label();
             this.labelCountry = new System.Windows.Forms.Label();
             this.labelLicensePlateTagsHelp = new System.Windows.Forms.Label();
-            this.buttonShowTagHelp = new System.Windows.Forms.Button();
+            this.buttonShowTagHelp = new TS_SE_Tool.MaterialButton();
             this.panel2 = new System.Windows.Forms.Panel();
             this.labelLicensePlateTagsHelp2 = new System.Windows.Forms.Label();
             this.tableLayoutPanel1.SuspendLayout();
@@ -171,7 +171,6 @@
             this.buttonShowTagHelp.TabIndex = 8;
             this.buttonShowTagHelp.Text = "Expand help";
             this.buttonShowTagHelp.UseVisualStyleBackColor = true;
-            this.buttonShowTagHelp.Click += new System.EventHandler(this.buttonShowTagHelp_Click);
             // 
             // panel2
             // 

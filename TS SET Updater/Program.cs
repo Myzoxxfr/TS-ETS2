@@ -45,7 +45,8 @@ namespace TS_SET_Updater
             {
                 try
                 {
-                    MessageBox.Show("Fatal Windows Forms Error", "Fatal Windows Forms Error", MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Stop);
+                    // Emergency reporting must still work if the custom UI or bundled font cannot load.
+                    System.Windows.Forms.MessageBox.Show("Fatal Windows Forms Error", "Fatal Windows Forms Error", MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Stop);
                 }
                 finally
                 {
@@ -85,7 +86,7 @@ namespace TS_SET_Updater
             {
                 try
                 {
-                    MessageBox.Show("Fatal Non-UI Error", "Fatal Non-UI Error. Could not write the error to the event log.\r\nReason: "
+                    System.Windows.Forms.MessageBox.Show("Fatal Non-UI Error", "Fatal Non-UI Error. Could not write the error to the event log.\r\nReason: "
                         + exc.Message, MessageBoxButtons.OK, MessageBoxIcon.Stop);
                 }
                 finally
@@ -101,7 +102,7 @@ namespace TS_SET_Updater
             string errorMsg = "An application error occurred.\n\nError details:\n\n"
                 + e.Message + "\n\nStack Trace:\n" + e.StackTrace;
 
-            return MessageBox.Show(errorMsg, title, MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Stop);
+            return JR.Utils.GUI.Forms.FlexibleMessageBox.Show(errorMsg, title, MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Stop);
         }
     }
 }

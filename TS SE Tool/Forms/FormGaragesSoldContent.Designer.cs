@@ -44,29 +44,29 @@ namespace TS_SE_Tool
         private void InitializeComponent()
         {
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.groupBox1 = new TS_SE_Tool.MaterialGroupBox();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanel5 = new System.Windows.Forms.TableLayoutPanel();
-            this.buttonMoveTrucksOut = new System.Windows.Forms.Button();
+            this.buttonMoveTrucksOut = new TS_SE_Tool.MaterialButton();
             this.treeViewSavedDrivers = new System.Windows.Forms.TreeView();
             this.treeViewSavedTrucks = new System.Windows.Forms.TreeView();
             this.labelSavedDrivers = new System.Windows.Forms.Label();
             this.labelSavedTrucks = new System.Windows.Forms.Label();
             this.tableLayoutPanel4 = new System.Windows.Forms.TableLayoutPanel();
-            this.buttonMoveDriversOut = new System.Windows.Forms.Button();
-            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.buttonMoveDriversOut = new TS_SE_Tool.MaterialButton();
+            this.groupBox2 = new TS_SE_Tool.MaterialGroupBox();
             this.tableLayoutPanel3 = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanel7 = new System.Windows.Forms.TableLayoutPanel();
-            this.buttonMoveDriversIn = new System.Windows.Forms.Button();
+            this.buttonMoveDriversIn = new TS_SE_Tool.MaterialButton();
             this.tableLayoutPanel6 = new System.Windows.Forms.TableLayoutPanel();
-            this.buttonMoveTrucksIn = new System.Windows.Forms.Button();
+            this.buttonMoveTrucksIn = new TS_SE_Tool.MaterialButton();
             this.treeViewSortingDrivers = new System.Windows.Forms.TreeView();
             this.treeViewSortingTrucks = new System.Windows.Forms.TreeView();
             this.labelSortingDrivers = new System.Windows.Forms.Label();
             this.labelSortingTrucks = new System.Windows.Forms.Label();
             this.tableLayoutPanel8 = new System.Windows.Forms.TableLayoutPanel();
-            this.buttonSave = new System.Windows.Forms.Button();
-            this.buttonCancel = new System.Windows.Forms.Button();
+            this.buttonSave = new TS_SE_Tool.MaterialButton();
+            this.buttonCancel = new TS_SE_Tool.MaterialButton();
             this.tableLayoutPanel1.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();

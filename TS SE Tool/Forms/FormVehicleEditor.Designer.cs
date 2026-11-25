@@ -30,19 +30,19 @@
         {
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
-            this.textBoxAccessoryData = new System.Windows.Forms.TextBox();
+            this.textBoxAccessoryData = new TS_SE_Tool.MaterialTextBox();
             this.panelEditButtons = new System.Windows.Forms.Panel();
-            this.buttonPaste = new System.Windows.Forms.Button();
-            this.buttonCopy = new System.Windows.Forms.Button();
-            this.buttonEdit = new System.Windows.Forms.Button();
+            this.buttonPaste = new TS_SE_Tool.MaterialButton();
+            this.buttonCopy = new TS_SE_Tool.MaterialButton();
+            this.buttonEdit = new TS_SE_Tool.MaterialButton();
             this.dataGridViewAccessories = new System.Windows.Forms.DataGridView();
             this.nameless = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ico = new System.Windows.Forms.DataGridViewImageColumn();
             this.AccName = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Delete = new System.Windows.Forms.DataGridViewButtonColumn();
             this.tableLayoutPanel3 = new System.Windows.Forms.TableLayoutPanel();
-            this.buttonCancel = new System.Windows.Forms.Button();
-            this.buttonApply = new System.Windows.Forms.Button();
+            this.buttonCancel = new TS_SE_Tool.MaterialButton();
+            this.buttonApply = new TS_SE_Tool.MaterialButton();
             this.tableLayoutPanel1.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
             this.panelEditButtons.SuspendLayout();

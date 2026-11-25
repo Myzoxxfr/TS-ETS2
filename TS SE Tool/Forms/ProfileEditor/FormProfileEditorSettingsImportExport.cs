@@ -27,7 +27,7 @@ using System.IO.Compression;
 
 namespace TS_SE_Tool
 {
-    public partial class FormProfileEditorSettingsImportExport : Form
+    public partial class FormProfileEditorSettingsImportExport : MaterialForm
     {
         internal new FormMain ParentForm;
         internal string ProfileType;
@@ -506,7 +506,7 @@ namespace TS_SE_Tool
                     }
                     
                     //Message
-                    MessageBox.Show("Files was imported.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Files was imported.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 catch { }
 
@@ -569,7 +569,7 @@ namespace TS_SE_Tool
                         }
 
                     //Message
-                    MessageBox.Show("Files was exported.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Files was exported.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 catch
                 { }
@@ -616,7 +616,7 @@ namespace TS_SE_Tool
                 {
                     Utilities.ZipDataUtilities.makeZipArchive(zipFilePath, tmpFileList);
 
-                    DialogResult dr = MessageBox.Show("ZIP Archive Created.\r\nOpen destination folder?", "Success", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+                    DialogResult dr = JR.Utils.GUI.Forms.FlexibleMessageBox.Show("ZIP Archive Created.\r\nOpen destination folder?", "Success", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
 
                     if (dr == DialogResult.Yes)
                         System.Diagnostics.Process.Start(Directory.GetParent(zipFilePath).FullName);
@@ -644,7 +644,7 @@ namespace TS_SE_Tool
                         }
 
                     //Message
-                    MessageBox.Show("Files was exported.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Files was exported.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 catch { }
             }

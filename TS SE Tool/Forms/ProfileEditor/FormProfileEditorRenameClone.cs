@@ -28,7 +28,7 @@ using System.Threading;
 
 namespace TS_SE_Tool
 {
-    public partial class FormProfileEditorRenameClone : Form
+    public partial class FormProfileEditorRenameClone : MaterialForm
     {
         public string ReturnNewName { get; set; }
         public List<string> ReturnClonedNames { get; set; } = new List<string>();
@@ -381,43 +381,43 @@ namespace TS_SE_Tool
                                 switch (progress)
                                 {
                                     case 0:
-                                        MessageBox.Show("Create new folder name failed");
+                                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Create new folder name failed");
                                         break;
                                     case 1:
-                                        MessageBox.Show("Directory was not created");
+                                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Directory was not created");
                                         break;
                                     case 2:
-                                        MessageBox.Show("Directory copy failed");
+                                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Directory copy failed");
                                         goto delete;
                                     case 3:
-                                        MessageBox.Show("Profile not decoded");
+                                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Profile not decoded");
                                         goto delete;
                                     case 4:
-                                        MessageBox.Show("Profile has wrong version/format");
+                                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Profile has wrong version/format");
                                         goto delete;
                                     case 5:
-                                        MessageBox.Show("Profile name is not applied");
+                                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Profile name is not applied");
                                         goto delete;
                                     case 6:
-                                        MessageBox.Show("Profile write failed");
+                                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Profile write failed");
                                         goto delete;
                                     case 7:
-                                        MessageBox.Show("Error during save preview fixing");
+                                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Error during save preview fixing");
                                         break;
                                     case 8:
-                                        MessageBox.Show("Profile backup creation failed. Keeping both versions. Delete old profile manually.");
+                                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Profile backup creation failed. Keeping both versions. Delete old profile manually.");
                                         break;
                                     case 9:
-                                        MessageBox.Show("Deleting old profile failed. Keeping both versions. Delete old profile manually.");
+                                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Deleting old profile failed. Keeping both versions. Delete old profile manually.");
                                         ZipFile.ExtractToDirectory(InitialPath + ".zip", InitialPath);
                                         File.Delete(InitialPath + ".zip");
                                         break;
                                         delete:
-                                        MessageBox.Show("Deleting new Profile.");
+                                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Deleting new Profile.");
                                         Directory.Delete(NewFolderPath);
                                         break;
                                     default:
-                                        MessageBox.Show("Unexpected error. Deleting new Profile.");
+                                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Unexpected error. Deleting new Profile.");
                                         Directory.Delete(NewFolderPath);
                                         break;
                                 }
@@ -580,37 +580,37 @@ namespace TS_SE_Tool
                                 switch (progress)
                                 {
                                     case 0:
-                                        MessageBox.Show("Create new folder name failed");
+                                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Create new folder name failed");
                                         break;
                                     case 1:
-                                        MessageBox.Show("Directory was not created");
+                                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Directory was not created");
                                         break;
                                     case 2:
-                                        MessageBox.Show("Directory copy failed");
+                                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Directory copy failed");
                                         goto delete;
                                     case 3:
-                                        MessageBox.Show("Profile not decoded");
+                                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Profile not decoded");
                                         goto delete;
                                     case 4:
-                                        MessageBox.Show("Profile has wrong version/format");
+                                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Profile has wrong version/format");
                                         goto delete;
                                     case 5:
-                                        MessageBox.Show("Profile properties was not applied");
+                                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Profile properties was not applied");
                                         goto delete;
                                     case 6:
-                                        MessageBox.Show("Profile write failed");
+                                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Profile write failed");
                                         goto delete;
                                     case 7:
-                                        MessageBox.Show("Directory for saves was not created");
+                                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Directory for saves was not created");
                                         goto delete;
                                     case 8:
-                                        MessageBox.Show("Directory with saves copy failed");
+                                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Directory with saves copy failed");
                                         goto delete;
                                     case 9:
-                                        MessageBox.Show("Album Directory copy failed");                                        
+                                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Album Directory copy failed");                                        
                                         break;
                                     default:
-                                        MessageBox.Show("Unexpected error. Deleting new Profile.");
+                                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Unexpected error. Deleting new Profile.");
                                         delete:
                                         Directory.Delete(NewFolderPath);
                                         break;

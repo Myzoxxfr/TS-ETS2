@@ -25,13 +25,37 @@ using System.Threading;
 
 namespace TS_SE_Tool
 {
-    partial class FormAboutBox : Form
+    partial class FormAboutBox : MaterialForm
     {
         FormMain MainForm = Application.OpenForms.OfType<FormMain>().Single();
 
         public FormAboutBox()
         {
             InitializeComponent();
+            AutoScaleMode = AutoScaleMode.Dpi;
+            AutoScaleDimensions = new SizeF(96, 96);
+            Font = AppTypography.Create(9);
+            ClientSize = new Size(500, 560);
+            MinimumSize = new Size(460, 500);
+            tableLayoutPanel.ColumnStyles[0].Width = 38;
+            tableLayoutPanel.ColumnStyles[1].Width = 62;
+            tableLayoutPanel.RowStyles[0].Height = 32;
+            tableLayoutPanel.RowStyles[2].Height = 28;
+            tableLayoutPanel.RowStyles[4].Height = 48;
+            tableLayoutPanel.RowStyles[7].Height = tableLayoutPanel.RowStyles[8].Height = 28;
+            tableLayoutPanel.RowStyles[10] = new RowStyle(SizeType.Percent, 100);
+            tableLayoutPanel.Controls.Remove(buttonSupportDeveloper);
+            tableLayoutPanel.SetRow(okButton, 12);
+            tableLayoutPanel.RowCount = 13;
+            while (tableLayoutPanel.RowStyles.Count > 13) tableLayoutPanel.RowStyles.RemoveAt(13);
+            tableLayoutPanel.RowStyles[11] = new RowStyle(SizeType.Absolute, 12);
+            tableLayoutPanel.RowStyles[12] = new RowStyle(SizeType.Absolute, 46);
+            okButton.Dock = DockStyle.Fill;
+            okButton.Margin = new Padding(6);
+            foreach (Control child in tableLayoutPanel.Controls)
+                if (child is Label label) { label.MaximumSize = Size.Empty; label.MinimumSize = new Size(0, 22); }
+            textBoxDescription.WordWrap = true;
+            textBoxDescription.ScrollBars = ScrollBars.Vertical;
 
             SetFormVisual();
             PopulateFormControls();
@@ -90,7 +114,7 @@ namespace TS_SE_Tool
         {
             string url = Utilities.Web_Utilities.External.linkHelpDeveloper;
 
-            DialogResult result = MessageBox.Show("This will open " + url + " web-page." + Environment.NewLine + "Do you want to continue?",
+            DialogResult result = JR.Utils.GUI.Forms.FlexibleMessageBox.Show("This will open " + url + " web-page." + Environment.NewLine + "Do you want to continue?",
                                                   "Support developer", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button2);
             if (result == DialogResult.Yes)
                 System.Diagnostics.Process.Start(url);

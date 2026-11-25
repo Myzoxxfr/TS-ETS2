@@ -35,7 +35,7 @@ using JR.Utils.GUI.Forms;
 
 namespace TS_SE_Tool
 {
-    public partial class FormMain : Form
+    public partial class FormMain : MaterialForm
     {
         #region  Accesslevels
 
@@ -98,7 +98,6 @@ namespace TS_SE_Tool
         public List<string> extraVehicles;//process result
         public List<string> extraDrivers;//process result
 
-        private List<VisitedCity> VisitedCities; //+
 
         private List<CompanyTruck> CompanyTruckList;//Program
         private List<CompanyTruck> CompanyTruckListDB;//Program
@@ -185,6 +184,8 @@ namespace TS_SE_Tool
         {
             IO_Utilities.LogWriter("Initializing form...");
             InitializeComponent();
+            AutoScaleMode = AutoScaleMode.Dpi;
+            AutoScaleDimensions = new SizeF(96, 96);
             IO_Utilities.LogWriter("Form initialized.");
 
             //Program
@@ -194,7 +195,7 @@ namespace TS_SE_Tool
             UpdateStatusBarMessage.OnNewStatusMessage += UpdateStatusBarMessage_OnNewStatusMessage;
             UpdateStatusBarMessage.OnNewMessageBox += ShowMessageBox_OnNewMessageBox;
             this.Icon = Properties.Resources.MainIco;
-            this.Text += " [ " + AssemblyData.AssemblyVersion + " ]";
+            this.Text += " · v." + AssemblyData.AssemblyVersion;
 
             SetDefaultValues(true);
             IO_Utilities.LogWriter("Loading config...");
@@ -216,6 +217,44 @@ namespace TS_SE_Tool
             Graphics_TSSET.CreateProgressBarBitmap();
             CreateTruckPanelControls();
             CreateTrailerPanelControls();
+            groupBoxProfileUserColorsShort.Visible = false;
+            tabPageProfile.AutoScroll = true;
+            tabPageProfile.Resize += (sender, e) => CenterProfileCards();
+            groupBoxProfileSkill.Layout += (sender, e) => CenterProfileCards();
+            foreach (Control icon in groupBoxProfileSkill.Controls)
+                if (icon is Panel) icon.BackgroundImageLayout = ImageLayout.Zoom;
+            CenterProfileCards();
+            comboBoxRootFolders.SetBounds(8, 108, 186, 30);
+            comboBoxProfiles.SetBounds(8, 144, 186, 30);
+            comboBoxSaves.SetBounds(8, 180, 186, 30);
+            buttonProfilesAndSavesRefreshAll.SetBounds(200, 108, 30, 30);
+            buttonProfilesAndSavesEditProfile.SetBounds(200, 144, 30, 30);
+            buttonProfilesAndSavesRestoreBackup.SetBounds(200, 180, 30, 30);
+            Action layoutProfiles = () =>
+            {
+                int right = comboBoxRootFolders.Parent.ClientSize.Width - 8;
+                foreach (Control field in new Control[] { comboBoxRootFolders, comboBoxProfiles, comboBoxSaves }) field.Width = Math.Max(60, right - field.Left - 36);
+                foreach (Control action in new Control[] { buttonProfilesAndSavesRefreshAll, buttonProfilesAndSavesEditProfile, buttonProfilesAndSavesRestoreBackup }) action.Left = right - action.Width;
+            };
+            comboBoxRootFolders.Parent.Layout += (sender, e) => layoutProfiles();
+            foreach (Control field in new Control[] { comboBoxRootFolders, comboBoxProfiles, comboBoxSaves })
+                field.SizeChanged += (sender, e) => layoutProfiles();
+            foreach (Control action in new Control[] { buttonProfilesAndSavesRefreshAll, buttonProfilesAndSavesEditProfile, buttonProfilesAndSavesRestoreBackup })
+            {
+                action.LocationChanged += (sender, e) => layoutProfiles();
+                action.SizeChanged += (sender, e) => layoutProfiles();
+            }
+            layoutProfiles();
+            foreach (Control field in new Control[] { comboBoxRootFolders, comboBoxProfiles, comboBoxSaves }) field.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            foreach (Control action in new Control[] { buttonProfilesAndSavesRefreshAll, buttonProfilesAndSavesEditProfile, buttonProfilesAndSavesRestoreBackup }) action.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            labelFreightMarketDestination.Font = AppTypography.Create(8);
+            checkBoxProfilesAndSavesProfileBackups.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            checkBoxProfilesAndSavesProfileBackups.Top = 84;
+            LayoutPlayerLevelCard();
+            LayoutCompanyCounter(labelUserCompanyGarages, labelUserCompanyGaragesCurrent, labelUserCompanyGaragesDelimetry, labelUserCompanyGaragesTotal);
+            LayoutCompanyCounter(labelUserCompanyDrivers, labelUserCompanyDriversCurrent, labelUserCompanyDriversDivider, labelUserCompanyDriversTotal);
+            LayoutCompanyCounter(labelUserCompanyVisitedCities, labelUserCompanyVisitedCitiesCurrent, labelUserCompanyVisitedCitiesDelimetry, labelUserCompanyVisitedCitiesTotal);
+            ConfigureModernLayouts();
             IO_Utilities.LogWriter("Done.");
 
             //Clear elements
@@ -237,53 +276,172 @@ namespace TS_SE_Tool
             IO_Utilities.LogWriter("Caching finished.");
         }
 
-        private void FormMain_Shown(object sender, EventArgs e)
+        private async void FormMain_Shown(object sender, EventArgs e)
         {
             IO_Utilities.LogWriter("Opening form...");
-            try
-            {
-                IO_Utilities.LogWriter("Done.");
-
-                if (Properties.Settings.Default.ShowSplashOnStartup || Properties.Settings.Default.CheckUpdatesOnStartup)
-                    OpenSplashScreen();                
-            }
-            catch
-            {
-                IO_Utilities.LogWriter("Done. Settings error.");
-
-                OpenSplashScreen();
-            }
-
+            bool showSplash = true;
+            try { showSplash = !TssetFoldersExist || (!ProgSettingsV.HideStartupPopup && Properties.Settings.Default.ShowSplashOnStartup); }
+            catch { IO_Utilities.LogWriter("Startup settings could not be read; opening recovery screen."); }
+            if (showSplash)
+                using (var splash = new FormSplash()) splash.ShowDialog(this);
             DetectGame();
-
-            void OpenSplashScreen()
+            if (!showSplash && Properties.Settings.Default.CheckUpdatesOnStartup &&
+                Web_Utilities.External.CheckNewVersionTimeElapsed(ProgSettingsV.LastUpdateCheck))
             {
-                FormSplash WindowSplash = new FormSplash();
-                WindowSplash.ShowDialog();
+                var version = await System.Threading.Tasks.Task.Run(() => Web_Utilities.External.CheckNewVersionAvailability());
+                if (IsDisposed || version == null) return;
+                ProgSettingsV.LastUpdateCheck = DateTime.Now;
+                if (Web_Utilities.External.CheckNewVersionStatus(version) == true)
+                    toolStripStatusMessages.Text = "Update " + version[0] + " available. Open Help > Check updates.";
             }
+        }
+
+        protected override void WndProc(ref Message message)
+        {
+            if (message.Msg == SingleInstance.ActivateMessage)
+            {
+                SingleInstance.Activate(Handle);
+                return;
+            }
+            base.WndProc(ref message);
+        }
+
+        private void CenterProfileCards()
+        {
+            int width = 420, height = 435;
+            foreach (Control child in groupBoxProfileSkill.Controls)
+            {
+                width = Math.Max(width, child.Right + 12);
+                height = Math.Max(height, child.Bottom + 12);
+            }
+            groupBoxProfileSkill.Size = new Size(width, height);
+            groupBoxProfilePlayerLevel.Width = width;
+            groupBoxProfileSkill.Top = groupBoxProfilePlayerLevel.Bottom + 14;
+            int left = Math.Max(12, (tabPageProfile.ClientSize.Width - width) / 2);
+            groupBoxProfilePlayerLevel.Left = groupBoxProfileSkill.Left = left;
+        }
+
+        private void AlignFieldCaption(Label caption, Control field)
+        {
+            Action align = () => caption.Top = Math.Max(0, field.Top - caption.PreferredSize.Height - 2);
+            field.Parent.Layout += (sender, e) => align();
+            align();
+        }
+
+        private void LayoutCompanyCounter(Label title, Label current, Label separator, Label total)
+        {
+            Control panel = current.Parent;
+            foreach (Label label in new[] { current, separator, total })
+            {
+                label.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+                label.AutoSize = false;
+                label.Height = 24;
+            }
+            Action align = () =>
+            {
+                int right = panel.ClientSize.Width - 12, top = Math.Max(0, (panel.ClientSize.Height - 24) / 2);
+                total.SetBounds(right - 56, top, 56, 24);
+                separator.SetBounds(right - 74, top, 18, 24);
+                current.SetBounds(right - 130, top, 56, 24);
+                title.Top = Math.Max(0, (panel.ClientSize.Height - title.PreferredSize.Height) / 2);
+            };
+            panel.Resize += (sender, e) => align();
+            align();
+        }
+
+        private void LayoutPlayerLevelCard()
+        {
+            groupBoxProfilePlayerLevel.Height = 168;
+            groupBoxProfileSkill.Top = 186;
+            buttonPlayerLevelMinus10.SetBounds(12, 8, 42, 30);
+            buttonPlayerLevelMinus01.SetBounds(60, 8, 42, 30);
+            buttonPlayerLevelPlus01.SetBounds(316, 8, 42, 30);
+            buttonPlayerLevelPlus10.SetBounds(364, 8, 42, 30);
+            var experienceRow = new FlowLayoutPanel { Name = "experienceRow", AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, WrapContents = false };
+            foreach (Label label in new[] { labelPlayerExperience, labelPlayerExperienceSpacer, labelPlayerExperienceNxtLvlThreshhold })
+            {
+                label.AutoSize = true;
+                label.RightToLeft = RightToLeft.No;
+                label.Margin = new Padding(4, 0, 4, 0);
+                experienceRow.Controls.Add(label);
+            }
+            panelPlayerLevel.Controls.Add(experienceRow);
+            bool fittingLevelLabels = false;
+            Action fitLevelLabels = () =>
+            {
+                if (fittingLevelLabels) return;
+                fittingLevelLabels = true;
+                try
+                {
+                    int left = buttonPlayerLevelMinus01.Right + 8;
+                    int width = Math.Max(1, buttonPlayerLevelPlus01.Left - left - 8);
+                    labelPlayerLevelNumber.Left = labelPlayerLevelName.Left = left;
+                    labelPlayerLevelNumber.Width = labelPlayerLevelName.Width = width;
+                    labelPlayerLevelNumber.Height = Math.Max(1, labelPlayerLevelName.Top - labelPlayerLevelNumber.Top - 4);
+                    experienceRow.Top = labelPlayerLevelName.Bottom + 4;
+                    experienceRow.Left = Math.Max(0, left + (width - experienceRow.PreferredSize.Width) / 2);
+                }
+                finally { fittingLevelLabels = false; }
+            };
+            panelPlayerLevel.Layout += (sender, e) => fitLevelLabels();
+            experienceRow.SizeChanged += (sender, e) => fitLevelLabels();
+            foreach (Control control in new Control[] { labelPlayerLevelNumber, labelPlayerLevelName, buttonPlayerLevelPlus01, buttonPlayerLevelMinus01 })
+            {
+                control.LocationChanged += (sender, e) => fitLevelLabels();
+                control.SizeChanged += (sender, e) => fitLevelLabels();
+            }
+            labelPlayerLevelNumber.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+            labelPlayerLevelNumber.SetBounds(112, 2, 198, 36);
+            labelPlayerLevelName.SetBounds(112, 38, 198, 24);
+            buttonPlayerLevelMinimum.SetBounds(12, 48, 90, 32);
+            buttonPlayerLevelSet.SetBounds(316, 48, 94, 32);
+            buttonPlayerUnlockSkills.SetBounds(130, 100, 160, 32);
+            foreach (Control control in groupBoxProfileSkill.Controls)
+                if (control.Name.StartsWith("labelProfileSkill")) control.Top -= 6;
         }
 
         private void FormMain_FormClosing(object sender, FormClosingEventArgs e)
         {
-            DialogResult exitDR;
-
-            if (this.ForseExit)            
-                return;
-
-            if (AddedJobsDictionary != null && AddedJobsDictionary.Count > 0)
-                exitDR = FlexibleMessageBox.Show(this, "You have unsaved changes."+ Environment.NewLine + "Do you really want to close down application?", "Close Application without saving changes", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button2);
-            else
-                exitDR = FlexibleMessageBox.Show(this, "Do you really want to close down application?", "Close Application", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
-
-            if (exitDR == DialogResult.Yes)
+            if (ForseExit) return;
+            bool unsaved = AddedJobsDictionary != null && AddedJobsDictionary.Count > 0;
+            if (unsaved || ProgSettingsV.AskBeforeClosing)
             {
-                ProgSettingsV.WriteConfigToFile();
+                using (var dialog = CreateCloseConfirmation(unsaved))
+                {
+                    if (!AcceptCloseChoice(dialog, dialog.ShowDialog(this)))
+                    {
+                        e.Cancel = true;
+                        Activate();
+                        return;
+                    }
+                }
             }
-            else
+            ProgSettingsV.WriteConfigToFile();
+        }
+
+        internal MaterialMessageDialog CreateCloseConfirmation(bool unsaved)
+        {
+            var dialog = new MaterialMessageDialog(
+                unsaved ? "You have unsaved changes.\r\nDo you really want to close down application?" : "Do you really want to close down application?",
+                unsaved ? "Close Application without saving changes" : "Close Application",
+                MessageBoxButtons.YesNo, unsaved ? MessageBoxIcon.Exclamation : MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+            if (!unsaved)
             {
-                e.Cancel = true;
-                Activate();
+                var body = dialog.Controls.Find("messageBody", true)[0];
+                var option = new CheckBox { Name = "dontAskAgain", Text = "Don't ask again", AutoSize = true, UseMnemonic = false, Left = 24, Top = dialog.MessageLabel.Bottom + 12 };
+                body.Controls.Add(option);
+                body.Layout += (sender, args) => option.Top = dialog.MessageLabel.Bottom + 12;
+                dialog.ClientSize = new Size(dialog.ClientSize.Width, dialog.ClientSize.Height + 44);
             }
+            return dialog;
+        }
+
+        internal bool AcceptCloseChoice(MaterialMessageDialog dialog, DialogResult result)
+        {
+            if (result != DialogResult.Yes) return false;
+            var option = dialog.Controls.Find("dontAskAgain", true).FirstOrDefault() as CheckBox;
+            if (option != null && option.Checked) ProgSettingsV.AskBeforeClosing = false;
+            return true;
         }
 
         private void makeToolStripMenuItem_Click(object sender, EventArgs e)

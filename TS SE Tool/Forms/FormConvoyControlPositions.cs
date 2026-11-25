@@ -28,7 +28,7 @@ using TGASharpLib;
 
 namespace TS_SE_Tool
 {
-    public partial class FormConvoyControlPositions : Form
+    public partial class FormConvoyControlPositions : MaterialForm
     {
         FormMain MainForm = Application.OpenForms.OfType<FormMain>().Single();
         bool exportState;
@@ -248,7 +248,7 @@ namespace TS_SE_Tool
                     catch (Exception ex)
                     {
                         // Could not load the image - probably related to Windows file system permissions.
-                        MessageBox.Show("Cannot display the image: " + file.Substring(file.LastIndexOf('\\'))
+                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Cannot display the image: " + file.Substring(file.LastIndexOf('\\'))
                             + ". You may not have permission to read the file, or " +
                             "it may be corrupt.\n\nError: " + ex.Message);
                     }
@@ -262,7 +262,7 @@ namespace TS_SE_Tool
             if (listBoxLeftExistingSaves.SelectionMode == SelectionMode.None || listBoxLeftExistingSaves.SelectedIndex == -1)
             {
                 listBoxLeftExistingSaves.SelectionMode = SelectionMode.One;
-                MessageBox.Show("Please select Base save file for New saves.");
+                JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Please select Base save file for New saves.");
 
                 listBoxLeftExistingSaves.SelectedValue = Globals.SelectedSavePath;
             }
@@ -281,7 +281,7 @@ namespace TS_SE_Tool
                     //Load Base save file
                     if (!File.Exists(SiiSavePath))
                     {
-                        MessageBox.Show("File does not exist in " + SiiSavePath);
+                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("File does not exist in " + SiiSavePath);
                         UpdateStatusBarMessage.ShowStatusMessage(SMStatus.Error, "error_could_not_find_file");
                     }
                     else
@@ -303,18 +303,18 @@ namespace TS_SE_Tool
 
                             if (decodeAttempt == 5)
                             {
-                                MessageBox.Show("Could not decrypt after 5 attempts");
+                                JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Could not decrypt after 5 attempts");
                                 UpdateStatusBarMessage.ShowStatusMessage(SMStatus.Error, "error_could_not_find_file");
                             }
                         }
                         catch
                         {
-                            MessageBox.Show("Could not read: " + SiiSavePath);
+                            JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Could not read: " + SiiSavePath);
                         }
 
                         if ((tempSavefileInMemory == null) || (tempSavefileInMemory[0] != "SiiNunit"))
                         {
-                            MessageBox.Show("Wrongly decoded Save file or wrong file format");
+                            JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Wrongly decoded Save file or wrong file format");
                             UpdateStatusBarMessage.ShowStatusMessage(SMStatus.Error, "error_could_not_find_file");
                         }
                         else
@@ -439,13 +439,13 @@ namespace TS_SE_Tool
                             //
                             buttonSave.Enabled = false;
                             GC.Collect();
-                            MessageBox.Show("Saves are created.\nNow you can close this window.");
+                            JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Saves are created.\nNow you can close this window.");
                         }
                     }
                 }
                 else
                 {
-                    MessageBox.Show("Not a valid save file for base file.\nPlease select existing save file not marked for deleting.");
+                    JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Not a valid save file for base file.\nPlease select existing save file not marked for deleting.");
                 }
             }
         }
@@ -522,7 +522,7 @@ namespace TS_SE_Tool
 
                     if(importSavesBe != importSavesAf)
                     {
-                        DialogResult result = MessageBox.Show("You importing saves with non unique names.\nThis can lead to confusion. Do you want to continue?\nYes - Continue. No - Cancel.",
+                        DialogResult result = JR.Utils.GUI.Forms.FlexibleMessageBox.Show("You importing saves with non unique names.\nThis can lead to confusion. Do you want to continue?\nYes - Continue. No - Cancel.",
                             "Non unique save file names", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button2);
                         if (result == DialogResult.Yes)
                         {
@@ -555,7 +555,7 @@ namespace TS_SE_Tool
                     //If found similar save file names
                     if (ExistingFlag)
                     {
-                        DialogResult result = MessageBox.Show("Some save files already exist.\nDo you want to overwrite save files?\nYes - overwrite. No - create saves with same names. Cancel - change selected saves.",
+                        DialogResult result = JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Some save files already exist.\nDo you want to overwrite save files?\nYes - overwrite. No - create saves with same names. Cancel - change selected saves.",
                             "Conflicting save file names", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button3);
                         if (result == DialogResult.Yes)
                         {
@@ -667,7 +667,7 @@ namespace TS_SE_Tool
                 string Converted = BitConverter.ToString(Utilities.ZipDataUtilities.zipText(tempData)).Replace("-", "");
                 Clipboard.SetText(Converted);
                 toolStripProgressBar.Value = 0;
-                MessageBox.Show("Positions has been copied.");
+                JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Positions has been copied.");
             }
             else
             {
@@ -725,14 +725,14 @@ namespace TS_SE_Tool
                         radioButtonMove.Enabled = true;
                         radioButtonSelect.Enabled = true;
 
-                        MessageBox.Show("Position data has been inserted.");
+                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Position data has been inserted.");
                     }
                     else
-                        MessageBox.Show("Wrong data. Expected Position data but\r\n" + dataLines[0] + "\r\nwas found.");
+                        JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Wrong data. Expected Position data but\r\n" + dataLines[0] + "\r\nwas found.");
                 }
                 catch
                 {
-                    MessageBox.Show("Something gone wrong.");
+                    JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Something gone wrong.");
                 }
             }
         }

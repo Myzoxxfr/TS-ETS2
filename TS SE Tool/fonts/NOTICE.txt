@@ -1,0 +1,10 @@
+Noto Sans Regular and Bold
+
+Copyright 2022 The Noto Project Authors (https://github.com/notofonts/latin-greek-cyrillic)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1. This license is available with a FAQ at: https://scripts.sil.org/OFL
+
+https://scripts.sil.org/OFL
+
+Bundled with the SIL Open Font License in OFL.txt.
+Source: https://github.com/notofonts/noto-fonts

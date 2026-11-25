@@ -32,11 +32,16 @@ namespace TS_SE_Tool
         public ProgSettings()
         { }
 
-        public string   ProgramVersion  { get; set; } = "0.1.0.0";
+        public string   ProgramVersion  { get; set; } = AssemblyData.AssemblyVersion;
 
         public string   ProgPrevVersion { get; set; } = "";
 
         public string   Language        { get; set; } = "Default";
+        public string   ThemeAccent     { get; set; } = "#000000";
+
+        public bool     HideStartupPopup { get; set; } = false;
+
+        public bool     AskBeforeClosing { get; set; } = true;
 
         public bool     ProposeRandom   { get; set; } = false;
 
@@ -75,6 +80,18 @@ namespace TS_SE_Tool
                                 ProgPrevVersion = data;
                                 break;
                             }
+
+                        case "HideStartupPopup":
+                            if (bool.TryParse(data, out bool hide)) HideStartupPopup = hide;
+                            break;
+
+                        case "AskBeforeClosing":
+                            if (bool.TryParse(data, out bool ask)) AskBeforeClosing = ask;
+                            break;
+
+                        case "ThemeAccent":
+                            if (MaterialYou.TryParseHex(data, out var accent)) ThemeAccent = MaterialYou.Hex(accent);
+                            break;
 
                         case "Language":
                             {

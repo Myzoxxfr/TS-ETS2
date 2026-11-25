@@ -44,7 +44,7 @@ namespace TS_SE_Tool
         private void InitializeComponent()
         {
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
-            this.buttonOK = new System.Windows.Forms.Button();
+            this.buttonOK = new TS_SE_Tool.MaterialButton();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.labelTSSE = new System.Windows.Forms.Label();
             this.labelVersion = new System.Windows.Forms.Label();
@@ -60,7 +60,7 @@ namespace TS_SE_Tool
             this.labelor2 = new System.Windows.Forms.Label();
             this.linkLabelNewVersion = new System.Windows.Forms.LinkLabel();
             this.linkLabelGitHub = new System.Windows.Forms.LinkLabel();
-            this.buttonSupportDeveloper = new System.Windows.Forms.Button();
+            this.buttonSupportDeveloper = new TS_SE_Tool.MaterialButton();
             this.labelSupportDeveloper = new System.Windows.Forms.Label();
             this.tableLayoutPanel1.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();

@@ -27,7 +27,7 @@ using System.Threading;
 
 namespace TS_SE_Tool
 {
-    public partial class FormAddCustomFolder : Form
+    public partial class FormAddCustomFolder : MaterialForm
     {
         FormMain MainForm = Application.OpenForms.OfType<FormMain>().Single();
 
@@ -40,6 +40,23 @@ namespace TS_SE_Tool
         public FormAddCustomFolder()
         {
             InitializeComponent();
+            AutoScaleMode = AutoScaleMode.Dpi;
+            AutoScaleDimensions = new SizeF(96, 96);
+            Font = AppTypography.Create(10);
+            ClientSize = new Size(500, 460);
+            tableLayoutPanel1.RowStyles[0].Height = 40;
+            tableLayoutPanel1.RowStyles[3].Height = 80;
+            tableLayoutPanel1.RowStyles[4].Height = 40;
+            tableLayoutPanel2.RowStyles[0].Height = 100;
+            radioButtonGameTypeETS2.Font = AppTypography.Create(10.5f);
+            radioButtonGameTypeATS.Font = AppTypography.Create(10.5f);
+            dataGridView1.RowHeadersVisible = false;
+            dataGridView1.ColumnHeadersHeight = 32;
+            dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.EnableResizing;
+            dataGridView1.Columns["Path"].MinimumWidth = 140;
+            dataGridView1.Columns["Path"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            dataGridView1.Columns["Del"].Width = 80;
+            dataGridView1.Columns["Del"].MinimumWidth = 72;
             this.Icon = Properties.Resources.MainIco;
 
             MainForm.HelpTranslateControl(this);
@@ -119,7 +136,7 @@ namespace TS_SE_Tool
             {
                 if (CustomPathsArr[GameType].Contains(SelectedfolderPath))
                 {
-                    MessageBox.Show("Path " + SelectedfolderPath + " already added to the " + GameType + " list", "Path exist in the list", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Path " + SelectedfolderPath + " already added to the " + GameType + " list", "Path exist in the list", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 }
                 else
                 {
@@ -127,7 +144,7 @@ namespace TS_SE_Tool
                     CustomPathChanged = true;
                     if (ListOpen)
                         UpdatedataGridView();
-                    MessageBox.Show("Path " + SelectedfolderPath + " added to the " + GameType + " list", "Custom path", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Path " + SelectedfolderPath + " added to the " + GameType + " list", "Custom path", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
             else
@@ -138,7 +155,7 @@ namespace TS_SE_Tool
                 CustomPathChanged = true;
                 if (ListOpen)
                         UpdatedataGridView();
-                MessageBox.Show("Path " + SelectedfolderPath + " added to the " + GameType + " list", "Custom path", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Path " + SelectedfolderPath + " added to the " + GameType + " list", "Custom path", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
 
             labelCustomPathDir.Text = "Choose folder...";
@@ -179,64 +196,15 @@ namespace TS_SE_Tool
         //Methods
         private void ChangeCustomPathListVisibility()
         {
-            if (ListOpen)
-            {
-                tableLayoutPanel1.ColumnStyles[2].Width = 0;
-                int w = 390;
-                this.MinimumSize = new Size(w, this.Height);
-                this.Width = w;
-                this.MaximumSize = new Size(this.Width, this.Height);
-
-                int xP = this.Location.X + 150;
-                if (xP > Screen.PrimaryScreen.WorkingArea.Width)
-                    xP = Screen.PrimaryScreen.WorkingArea.Width - this.Width;
-                this.Location = new Point(xP, this.Location.Y);
-
-                ListOpen = false;
-
-                try
-                {
-                    string translatedString = MainForm.ResourceManagerMain.GetString(buttonEditCPlist.Name, Thread.CurrentThread.CurrentUICulture);
-                    if (translatedString != null)
-                        buttonEditCPlist.Text = translatedString + " ▶";
-                    else
-                        buttonEditCPlist.Text = "Edit list" + " ▶";
-
-                }
-                catch
-                {
-                }
-            }
-            else
-            {
-                tableLayoutPanel1.ColumnStyles[2].Width = 300;
-                int w = 690;
-                this.MaximumSize = new Size(w, this.Height);
-                this.Width = w;
-                this.MinimumSize = new Size(this.Width, this.Height);
-
-                int xP = this.Location.X - 150;
-                if (xP < 0)
-                    xP = 0;
-                this.Location = new Point(xP, this.Location.Y);
-
-                ListOpen = true;
-
-                try
-                {
-                    string translatedString = MainForm.ResourceManagerMain.GetString(buttonEditCPlist.Name, Thread.CurrentThread.CurrentUICulture);
-                    if (translatedString != null)
-                        buttonEditCPlist.Text = translatedString + " ◀";
-                    else
-                        buttonEditCPlist.Text = "Edit list" + " ◀";
-
-                }
-                catch
-                {
-                }
-
-                UpdatedataGridView();
-            }
+            ListOpen = !ListOpen;
+            float scale = DeviceDpi / 96f;
+            int listWidth = ListOpen ? (int)(360 * scale) : 0;
+            tableLayoutPanel1.ColumnStyles[2].Width = listWidth;
+            MinimumSize = MaximumSize = Size.Empty;
+            ClientSize = new Size((int)(500 * scale) + listWidth, ClientSize.Height);
+            MinimumSize = MaximumSize = Size;
+            buttonEditCPlist.Text = "Edit list " + (ListOpen ? "◀" : "▶");
+            if (ListOpen) UpdatedataGridView();
         }
 
         private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
@@ -282,7 +250,7 @@ namespace TS_SE_Tool
 
             if (CustomPathChanged)
             {
-                exitDR = MessageBox.Show("You have unsaved changes.\r\nDo you really want to close dialogue without saving?", "Dialogue close", MessageBoxButtons.YesNo);
+                exitDR = JR.Utils.GUI.Forms.FlexibleMessageBox.Show("You have unsaved changes.\r\nDo you really want to close dialogue without saving?", "Dialogue close", MessageBoxButtons.YesNo);
 
                 if (exitDR == DialogResult.Yes)
                 {

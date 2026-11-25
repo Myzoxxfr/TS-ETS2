@@ -25,7 +25,7 @@ using System.Windows.Forms;
 
 namespace TS_SE_Tool
 {
-    public partial class FormAIDriverEditor : Form
+    public partial class FormAIDriverEditor : MaterialForm
     {
         FormMain MainForm = Application.OpenForms.OfType<FormMain>().Single();
 
@@ -89,7 +89,7 @@ namespace TS_SE_Tool
 
             for (int i = 0; i < 6; i++)
             {
-                CheckBox Ppanel = new CheckBox();
+                CheckBox Ppanel = new MaterialSkillButton();
                 groupBoxDriverSkill.Controls.Add(Ppanel);
 
                 Ppanel.Parent = groupBoxDriverSkill;
@@ -120,7 +120,7 @@ namespace TS_SE_Tool
             {
                 for (int j = 0; j < 6; j++)
                 {
-                    CheckBox Ppanel = new CheckBox();
+                    CheckBox Ppanel = new MaterialSkillButton();
                     groupBoxDriverSkill.Controls.Add(Ppanel);
 
                     Ppanel.Parent = groupBoxDriverSkill;
@@ -217,11 +217,6 @@ namespace TS_SE_Tool
                     SkillButtonArray[skillIndex, j].BackgroundImage = MainForm.SkillImgSBG[1];
             }
 
-            for (int j = buttonIndex; j < 6; j++)
-            {
-                if (SkillButtonArray[skillIndex, j].Checked)
-                    SkillButtonArray[skillIndex, j].BackgroundImage = MainForm.SkillImgSBG[0];
-            }
         }
 
         private void Skillbutton_MouseLeave(object sender, EventArgs e)
@@ -260,7 +255,7 @@ namespace TS_SE_Tool
             else
                 driverData.setADRbit(adrIndex, false);
 
-            thisbutton.BackgroundImage = MainForm.SkillImgSBG[1];
+            thisbutton.BackgroundImage = MainForm.SkillImgSBG[thisbutton.Checked ? 3 : 0];
         }
 
         private void ADRbutton_CheckedChanged(object sender, EventArgs e)
@@ -285,7 +280,7 @@ namespace TS_SE_Tool
         {
             CheckBox thisbutton = sender as CheckBox;
 
-            thisbutton.BackgroundImage = MainForm.SkillImgSBG[1];
+            thisbutton.BackgroundImage = MainForm.SkillImgSBG[thisbutton.Checked ? 3 : 1];
         }
 
         private void ADRbutton_MouseHover(object sender, EventArgs e)
@@ -296,12 +291,12 @@ namespace TS_SE_Tool
 
             if (thisbutton.Checked)
             {
-                thisbutton.BackgroundImage = MainForm.SkillImgSBG[1];
+                thisbutton.BackgroundImage = MainForm.SkillImgSBG[thisbutton.Checked ? 3 : 1];
                 thisbutton.Image = MainForm.ADRImgS[adrIndex];
             }
             else
             {
-                thisbutton.BackgroundImage = MainForm.SkillImgSBG[1];
+                thisbutton.BackgroundImage = MainForm.SkillImgSBG[thisbutton.Checked ? 3 : 1];
                 thisbutton.Image = MainForm.ADRImgSGrey[adrIndex];
             }
         }

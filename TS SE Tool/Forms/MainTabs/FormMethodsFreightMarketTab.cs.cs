@@ -49,6 +49,7 @@ namespace TS_SE_Tool
 
         private void listBoxAddedJobs_DrawItem(object sender, DrawItemEventArgs e)
         {
+            e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
             try
             {
                 // Get the ListBox and the item.
@@ -213,7 +214,7 @@ namespace TS_SE_Tool
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, ex.Source);
+                JR.Utils.GUI.Forms.FlexibleMessageBox.Show(ex.Message, ex.Source);
             }
         }
 
@@ -314,7 +315,7 @@ namespace TS_SE_Tool
                 cityLayout.X = e.Bounds.Right - countryNameWidth - cityNameWidth - JobsItemMargin * 3;
 
             //Draw
-            e.Graphics.DrawString(textToWrite, this.Font, _brush, cityLayout, _format);
+            e.Graphics.DrawString(textToWrite, e.Font, _brush, cityLayout, _format);
         }
 
         internal List<Image> freightMarketGetCargoTypeIcons(JobAdded _job )
@@ -835,6 +836,7 @@ namespace TS_SE_Tool
 
         private void comboBoxFreightMarketCargoList_DrawItem(object sender, DrawItemEventArgs e)
         {
+            e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
             if (e.Index < 0)
                 return;
 
@@ -973,7 +975,7 @@ namespace TS_SE_Tool
             y = e.Bounds.Top + (e.Bounds.Height - 4 - fntsize) / 2;
             layout_rect = new RectangleF(x, y, width, height);
             //format.Alignment = StringAlignment.Far;
-            Font textfnt = new Font("Microsoft Sans Serif", fntsize);
+            Font textfnt = new Font(AppTypography.FamilyName, fntsize);
             e.Graphics.DrawString(txt, textfnt, br, layout_rect);
 
             // Draw the focus rectangle if the mouse hovers over an item.
@@ -1030,6 +1032,7 @@ namespace TS_SE_Tool
 
         private void comboBoxFreightMarketUrgency_DrawItem(object sender, DrawItemEventArgs e)
         {
+            e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
             if (e.Index < 0)
                 return;
 
@@ -1065,7 +1068,7 @@ namespace TS_SE_Tool
             layout_rect = new RectangleF(x, y, width, height);
             //format.Alignment = StringAlignment.Far;
 
-            Font textfnt = new Font("Microsoft Sans Serif", fntsize);
+            Font textfnt = new Font(AppTypography.FamilyName, fntsize);
 
             e.Graphics.DrawString(txt, textfnt, br, layout_rect);
 
@@ -1143,6 +1146,7 @@ namespace TS_SE_Tool
 
         private void comboBoxFreightMarketTrailerDef_DrawItem(object sender, DrawItemEventArgs e)
         {
+            e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
             if (e.Index < 0)
                 return;
 
@@ -1240,7 +1244,7 @@ namespace TS_SE_Tool
             // Find the area in which to put the text.
 
             float fntsize = 8.25f;
-            string fontName = "Microsoft Sans Serif";
+            string fontName = AppTypography.FamilyName;
             Font textfnt = new Font(fontName, fntsize);
 
             // Measure string.
@@ -1320,6 +1324,7 @@ namespace TS_SE_Tool
 
         private void comboBoxFreightMarketTrailerVariant_DrawItem(object sender, DrawItemEventArgs e)
         {
+            e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
             if (e.Index < 0)
                 return;
 
@@ -1348,7 +1353,7 @@ namespace TS_SE_Tool
 
             // Find the area in which to put the text.
             float fntsize = 8.25f;
-            string fontName = "Microsoft Sans Serif";
+            string fontName = AppTypography.FamilyName;
             Font textfnt = new Font(fontName, fntsize);
 
             // Measure string.

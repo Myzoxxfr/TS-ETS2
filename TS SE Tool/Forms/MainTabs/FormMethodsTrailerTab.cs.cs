@@ -44,7 +44,7 @@ namespace TS_SE_Tool
             int pHeight = RepairImg.Height, pOffset = 5, tOffset = comboBoxUserTrailerCompanyTrailers.Location.Y;
             int topbutoffset = comboBoxUserTrailerCompanyTrailers.Location.X + comboBoxUserTrailerCompanyTrailers.Width + pOffset;
 
-            Button buttonR = new Button();
+            Button buttonR = new TS_SE_Tool.MaterialButton();
             tableLayoutPanelUserTrailerControls.Controls.Add(buttonR, 1, 0);
             buttonR.FlatStyle = FlatStyle.Flat;
             buttonR.Size = new Size(RepairImg.Height, RepairImg.Height);
@@ -57,7 +57,7 @@ namespace TS_SE_Tool
             buttonR.Click += new EventHandler(buttonTrailerRepair_Click);
             buttonR.EnabledChanged += new EventHandler(buttonTrailerElRepair_EnabledChanged);
 
-            Button buttonInfo = new Button();
+            Button buttonInfo = new TS_SE_Tool.MaterialButton();
             tableLayoutPanelUserTrailerControls.Controls.Add(buttonInfo, 3, 0);
             buttonInfo.FlatStyle = FlatStyle.Flat;
             buttonInfo.Size = new Size(CustomizeImg.Width, CustomizeImg.Height);
@@ -145,7 +145,7 @@ namespace TS_SE_Tool
                 tbllPanel.Controls.Add(pbPanel, 1, 1);
 
                 //Repair button
-                Button button = new Button();
+                Button button = new TS_SE_Tool.MaterialButton();
                 button.FlatStyle = FlatStyle.Flat;
                 button.Dock = DockStyle.Fill;
                 button.Margin = new Padding(1);
@@ -183,7 +183,7 @@ namespace TS_SE_Tool
             tableLayoutPanelTrailerLP.Controls.Add(lcPlate, 1, 0);
 
             //button Edit
-            Button buttonLPEdit = new Button();
+            Button buttonLPEdit = new TS_SE_Tool.MaterialButton();
             buttonLPEdit.Size = new Size(CustomizeImg.Width, CustomizeImg.Height);
             buttonLPEdit.Name = "buttonTrailerLicensePlateEdit";
             buttonLPEdit.BackgroundImage = CustomizeImg;

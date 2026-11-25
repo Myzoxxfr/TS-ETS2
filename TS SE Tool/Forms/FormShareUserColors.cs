@@ -34,7 +34,7 @@ using System.Drawing.Drawing2D;
 
 namespace TS_SE_Tool
 {
-    public partial class FormShareUserColors : Form
+    public partial class FormShareUserColors : MaterialForm
     {
         private FormMain MainForm = Application.OpenForms.OfType<FormMain>().Single();
 
@@ -459,7 +459,7 @@ namespace TS_SE_Tool
                 else
                 {
                     /*
-                    Button bttn = new Button();
+                    Button bttn = new TS_SE_Tool.MaterialButton();
                     panelImportedColors.Controls.Add(bttn);
 
                     bttn.Name = "buttonIC" + i.ToString();

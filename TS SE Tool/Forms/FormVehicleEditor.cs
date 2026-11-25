@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace TS_SE_Tool
 {
-    public partial class FormVehicleEditor : Form
+    public partial class FormVehicleEditor : MaterialForm
     {
         FormMain MainForm = Application.OpenForms.OfType<FormMain>().Single();
 
@@ -135,7 +135,7 @@ namespace TS_SE_Tool
 
                 dialogText += " ?";
 
-                DialogResult dr = MessageBox.Show(dialogText, "Deleting item", MessageBoxButtons.YesNo);
+                DialogResult dr = JR.Utils.GUI.Forms.FlexibleMessageBox.Show(dialogText, "Deleting item", MessageBoxButtons.YesNo);
 
                 if (dr == DialogResult.Yes)
                 {
@@ -223,7 +223,7 @@ namespace TS_SE_Tool
             if (Clipboard.ContainsText(TextDataFormat.Text))
                 result = Clipboard.GetText(TextDataFormat.Text);
             else
-                MessageBox.Show("No valid items");
+                JR.Utils.GUI.Forms.FlexibleMessageBox.Show("No valid items");
 
             if (result != null)
             {
@@ -231,7 +231,7 @@ namespace TS_SE_Tool
 
                 if (lines[0] != exportFormatString || lines.Count() < 4)
                 {
-                    MessageBox.Show("Non valid item");
+                    JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Non valid item");
                     return;
                 }
 

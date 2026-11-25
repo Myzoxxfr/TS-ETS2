@@ -33,6 +33,8 @@ using System.Net.Mime;
 using System.Security.Cryptography;
 using TS_SE_Tool.Utilities;
 using System.Security.Policy;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Json;
 
 namespace TS_SE_Tool.Utilities
 {
@@ -53,10 +55,6 @@ namespace TS_SE_Tool.Utilities
         internal string linkGithubReleases = RepositoryUrl + "/releases";
         internal string linkGithubReleasesLatest = RepositoryUrl + "/releases/latest";
 
-        private static System.Timers.Timer aTimer;
-        private static byte atimerCounter = 0;
-        private static string aTimerControlText = "";
-
         //Check for new version
         internal bool CheckNewVersionTimeElapsed(DateTime _lastTime)
         {
@@ -68,30 +66,53 @@ namespace TS_SE_Tool.Utilities
                 return false;
         }
 
-        internal string[] CheckNewVersionAvailability(Control _control)
+        internal string[] CheckNewVersionAvailability()
         {
-            aTimerControlText = _control.Text;
-            SetTimer(_control);
-
-            try
-            {
-                return ParseUpdateData(GetLatestVersionData());
-            }
-            finally
-            {
-                aTimer.Stop();
-                aTimer.Dispose();
-            }
+            return CheckLatestRelease(DownloadText);
         }
 
-        private string GetLatestVersionData()
+        internal string[] CheckLatestRelease(Func<string, string> download)
+        {
+            var metadata = ParseUpdateData(download(linkCheckVersion));
+            if (metadata != null) return metadata;
+            return ParseReleaseVersion(download("https://api.github.com/repos/Myzoxxfr/TS-ETS2/releases/latest"));
+        }
+
+        [DataContract]
+        private class ReleaseVersion
+        {
+            [DataMember(Name = "tag_name")] public string Tag { get; set; }
+            [DataMember(Name = "draft")] public bool Draft { get; set; }
+            [DataMember(Name = "prerelease")] public bool Prerelease { get; set; }
+        }
+
+        internal static string[] ParseReleaseVersion(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return null;
+            try
+            {
+                using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(text)))
+                {
+                    var release = (ReleaseVersion)new DataContractJsonSerializer(typeof(ReleaseVersion)).ReadObject(stream);
+                    string tag = release?.Tag;
+                    if (string.IsNullOrEmpty(tag) || release.Draft || release.Prerelease) return null;
+                    if (tag.StartsWith("v", StringComparison.OrdinalIgnoreCase)) tag = tag.Substring(1).TrimStart('.');
+                    if (!Version.TryParse(tag, out var version) || version.Revision < 0 || version.ToString() != tag) return null;
+                    // Without SHA-512 metadata, offer the release page instead of installing an unverified ZIP.
+                    return new[] { tag, "" };
+                }
+            }
+            catch (SerializationException) { return null; }
+        }
+
+        private string DownloadText(string url)
         {
             using (WebClientWithTO client = new WebClientWithTO())
             {
                 client.Timeout_S = 10;
                 try
                 {
-                    return client.DownloadString(linkCheckVersion);
+                    return client.DownloadString(url);
                 }
                 catch (Exception ex)
                 {
@@ -135,30 +156,6 @@ namespace TS_SE_Tool.Utilities
             return linkGithubReleasesLatest + "/download/TS-ETS2." + versionText + ".zip";
         }
         //
-        private static void SetTimer(Control _control)
-        {
-            aTimer = new System.Timers.Timer(200);
-            aTimer.Elapsed += (Object source, ElapsedEventArgs e) => OnTimedEvent(source, e, _control);
-            aTimer.AutoReset = true;
-            aTimer.Enabled = true;
-        }
-
-        private static void OnTimedEvent(Object source, ElapsedEventArgs e, Control _control)
-        {
-            _control.BeginInvoke((MethodInvoker)delegate ()
-            {
-                atimerCounter++;
-
-                if (atimerCounter < 5)
-                    _control.Text += ".";
-                else
-                {
-                    atimerCounter = 0;
-                    _control.Text = aTimerControlText;
-                }
-            });
-        }
-
         internal class WebClientWithTO : WebClient
         {
             public UInt16 Timeout_S { get; set; } = 60;

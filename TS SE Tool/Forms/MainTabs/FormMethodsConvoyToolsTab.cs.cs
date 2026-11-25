@@ -31,7 +31,7 @@ namespace TS_SE_Tool
             tempString += SiiNunitData.Player.my_truck_placement;
             string asd = BitConverter.ToString(Utilities.ZipDataUtilities.zipText(tempString)).Replace("-", "");
             Clipboard.SetText(asd);
-            MessageBox.Show("Truck GPS position has been copied.");
+            JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Truck GPS position has been copied.");
         }
 
         private void buttonGPSCurrentPositionPaste_Click(object sender, EventArgs e)
@@ -52,14 +52,14 @@ namespace TS_SE_Tool
 
                     SiiNunitData.Player.my_truck_placement = new SCS_Placement(tempstr[0]);
 
-                    MessageBox.Show("Truck GPS position has been inserted.");
+                    JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Truck GPS position has been inserted.");
                 }
                 else
-                    MessageBox.Show("Wrong data. Expected Truck GPS data but\r\n" + Lines[0] + "\r\nwas found.");
+                    JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Wrong data. Expected Truck GPS data but\r\n" + Lines[0] + "\r\nwas found.");
             }
             catch
             {
-                MessageBox.Show("Something gone wrong with decoding.");
+                JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Something gone wrong with decoding.");
             }
         }
 
@@ -108,10 +108,10 @@ namespace TS_SE_Tool
                 }
             }
 
-            //MessageBox.Show(tempPaint);
+            //JR.Utils.GUI.Forms.FlexibleMessageBox.Show(tempPaint);
             string asd = BitConverter.ToString(Utilities.ZipDataUtilities.zipText(tempData)).Replace("-", "");
             Clipboard.SetText(asd);
-            MessageBox.Show("GPS Path data has been copied.");
+            JR.Utils.GUI.Forms.FlexibleMessageBox.Show("GPS Path data has been copied.");
         }
 
         private void buttonGPSStoredGPSPathPaste_Click(object sender, EventArgs e)
@@ -260,14 +260,14 @@ namespace TS_SE_Tool
                         }
                     }
 
-                    MessageBox.Show("GPS Path data has been inserted.");
+                    JR.Utils.GUI.Forms.FlexibleMessageBox.Show("GPS Path data has been inserted.");
                 }
                 else
-                    MessageBox.Show("Wrong data. Expected GPS Path data but\r\n" + Lines[0] + "\r\nwas found.");
+                    JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Wrong data. Expected GPS Path data but\r\n" + Lines[0] + "\r\nwas found.");
             }
             catch
             {
-                MessageBox.Show("Something gone wrong with decoding.");
+                JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Something gone wrong with decoding.");
             }
         }
 

@@ -31,11 +31,11 @@
             this.components = new System.ComponentModel.Container();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.labelDriverName = new System.Windows.Forms.Label();
-            this.groupBoxDriverSkill = new System.Windows.Forms.GroupBox();
+            this.groupBoxDriverSkill = new TS_SE_Tool.MaterialGroupBox();
             this.labelDriverNameText = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.buttonCancel = new System.Windows.Forms.Button();
-            this.buttonSave = new System.Windows.Forms.Button();
+            this.buttonCancel = new TS_SE_Tool.MaterialButton();
+            this.buttonSave = new TS_SE_Tool.MaterialButton();
             this.toolTipAIDriverEditor = new System.Windows.Forms.ToolTip(this.components);
             this.tableLayoutPanel1.SuspendLayout();
             this.panel1.SuspendLayout();

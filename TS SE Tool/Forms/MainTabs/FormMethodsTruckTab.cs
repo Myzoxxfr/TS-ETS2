@@ -44,7 +44,7 @@ namespace TS_SE_Tool
             int pHeight = RepairImg.Height, pOffset = 5, tOffset = comboBoxUserTruckCompanyTrucks.Location.Y;
             int topbutoffset = comboBoxUserTruckCompanyTrucks.Location.X + comboBoxUserTruckCompanyTrucks.Width + pOffset;
 
-            Button buttonInfo = new Button();
+            Button buttonInfo = new TS_SE_Tool.MaterialButton();
             tableLayoutPanelUserTruckControls.Controls.Add(buttonInfo, 3, 0);
             buttonInfo.FlatStyle = FlatStyle.Flat;
             buttonInfo.Size = new Size(CustomizeImg.Width, CustomizeImg.Height);
@@ -56,7 +56,7 @@ namespace TS_SE_Tool
             buttonInfo.Dock = DockStyle.Fill;
             buttonInfo.Click += new EventHandler(buttonUserTruckVehicleEditor_Click);
 
-            Button buttonR = new Button();
+            Button buttonR = new TS_SE_Tool.MaterialButton();
             tableLayoutPanelUserTruckControls.Controls.Add(buttonR, 1, 0);
             buttonR.FlatStyle = FlatStyle.Flat;
             buttonR.Size = new Size(RepairImg.Height, RepairImg.Height);
@@ -69,7 +69,7 @@ namespace TS_SE_Tool
             buttonR.EnabledChanged += new EventHandler(buttonElRepair_EnabledChanged);
             buttonR.Dock = DockStyle.Fill;
 
-            Button buttonF = new Button();
+            Button buttonF = new TS_SE_Tool.MaterialButton();
             tableLayoutPanelUserTruckControls.Controls.Add(buttonF, 2, 0);
             buttonF.FlatStyle = FlatStyle.Flat;
             buttonF.Size = new Size(RepairImg.Height, RepairImg.Height);
@@ -157,7 +157,7 @@ namespace TS_SE_Tool
                 tbllPanel.Controls.Add(pbPanel, 1, 1);
 
                 //Repair button
-                Button button = new Button();
+                Button button = new TS_SE_Tool.MaterialButton();
                 button.FlatStyle = FlatStyle.Flat;
                 button.Dock = DockStyle.Fill;
                 button.Margin = new Padding(1);
@@ -213,7 +213,7 @@ namespace TS_SE_Tool
             tableLayoutPanelTruckLP.Controls.Add(lcPlate, 1, 0);
 
             //button Edit
-            Button buttonLPEdit = new Button();
+            Button buttonLPEdit = new TS_SE_Tool.MaterialButton();
             buttonLPEdit.Size = new Size(CustomizeImg.Width, CustomizeImg.Height);
             buttonLPEdit.Name = "buttonTruckLicensePlateEdit";
             buttonLPEdit.BackgroundImage = CustomizeImg;
@@ -1142,7 +1142,7 @@ namespace TS_SE_Tool
 
             string tmpString = BitConverter.ToString(Utilities.ZipDataUtilities.zipText(tempPaint)).Replace("-", "");
             Clipboard.SetText(tmpString);
-            MessageBox.Show("Paint data has been copied.");
+            JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Paint data has been copied.");
         }
 
         private void buttonTruckPaintPaste_Click(object sender, EventArgs e)
@@ -1162,14 +1162,14 @@ namespace TS_SE_Tool
 
                     //UserTruckDictionary[comboBoxUserTruckCompanyTrucks.SelectedValue.ToString()].Parts.Find(xp => xp.PartType == "paintjob").PartData = paintstr;
 
-                    MessageBox.Show("Paint data  has been inserted.");
+                    JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Paint data  has been inserted.");
                 }
                 else
-                    MessageBox.Show("Wrong data. Expected Paint data but\r\n" + Lines[0] + "\r\nwas found.");
+                    JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Wrong data. Expected Paint data but\r\n" + Lines[0] + "\r\nwas found.");
             }
             catch
             {
-                MessageBox.Show("Something gone wrong with decoding.");
+                JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Something gone wrong with decoding.");
             }
         }
         //end Share buttons

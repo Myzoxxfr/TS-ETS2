@@ -53,7 +53,7 @@ namespace TS_SE_Tool
             
             for (int i = 0; i < 6; i++)
             {
-                CheckBox Ppanel = new CheckBox();
+                CheckBox Ppanel = new MaterialSkillButton();
                 groupBoxProfileSkill.Controls.Add(Ppanel);
 
                 Ppanel.Parent = groupBoxProfileSkill;
@@ -84,7 +84,7 @@ namespace TS_SE_Tool
             {
                 for (int j = 0; j < 6; j++)
                 {
-                    CheckBox Ppanel = new CheckBox();
+                    CheckBox Ppanel = new MaterialSkillButton();
                     groupBoxProfileSkill.Controls.Add(Ppanel);
 
                     Ppanel.Parent = groupBoxProfileSkill;
@@ -153,7 +153,7 @@ namespace TS_SE_Tool
                 if (PlayerLevelNames[i].LevelLimit <= playerlvl)
                 {
                     labelPlayerLevelName.Text = PlayerLevelNames[i].LevelName;
-                    panelPlayerLevel.BackColor = PlayerLevelNames[i].NameColor;
+                    panelPlayerLevel.BackColor = Color.FromArgb(240, 240, 240);
                     break;
                 }
 
@@ -179,7 +179,7 @@ namespace TS_SE_Tool
                 {
                     for (int j = 0; j < 4; j++)
                     {
-                        Button rb = new Button();
+                        Button rb = new TS_SE_Tool.MaterialButton();
                         rb.Name = "buttonUC" + btnNumber.ToString();
                         rb.Text = null;
 
@@ -211,7 +211,7 @@ namespace TS_SE_Tool
             else
                 for (int i = 0; i < SiiNunitData.Economy.user_colors.Count; i++)
                 {
-                    Button rb = new Button();
+                    Button rb = new TS_SE_Tool.MaterialButton();
                     rb.Name = "buttonUC" + i.ToString();
                     rb.Text = null;
                     rb.Location = new Point((usableSpace - width * 3) / 2, 8 + (padding * 2 + height * 2) * i);
@@ -289,7 +289,7 @@ namespace TS_SE_Tool
                     {
                         for (int j = 0; j < 4; j++)
                         {
-                            btn = new Button();
+                            btn = new TS_SE_Tool.MaterialButton();
                             btn.Name = "buttonUC" + i.ToString();
                             btn.Text = null;
 
@@ -551,43 +551,41 @@ namespace TS_SE_Tool
             FormUpdatePlayerLevel();
         }
 
+        internal MaterialForm CreatePlayerLevelDialog(decimal currentLevel)
+        {
+            var dialog = new MaterialForm { Text = "Set player level", Font = AppTypography.Create(10),
+                AutoScaleMode = AutoScaleMode.Dpi, AutoScaleDimensions = new SizeF(96, 96),
+                ClientSize = new Size(420, 170), FormBorderStyle = FormBorderStyle.FixedDialog,
+                MaximizeBox = false, MinimizeBox = false, ShowInTaskbar = false, StartPosition = FormStartPosition.CenterParent };
+            var layout = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 2, Padding = new Padding(20) };
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 48));
+            var level = new MaterialNumber { Name = "playerLevelValue", Minimum = 0,
+                Maximum = Math.Min(int.MaxValue, NumericUtilities.GetPlayerLevel(uint.MaxValue)[0]),
+                Value = currentLevel, AccessibleName = "Player level", Anchor = AnchorStyles.Left | AnchorStyles.Right };
+            layout.Controls.Add(new Label { Text = "Player level", AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(0, 0, 16, 0) }, 0, 0);
+            layout.Controls.Add(level, 1, 0);
+            var actions = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.RightToLeft };
+            var cancel = new MaterialButton { Text = "Cancel", DialogResult = DialogResult.Cancel, Size = new Size(100, 36) };
+            var apply = new MaterialButton { Text = "Apply", DialogResult = DialogResult.OK, Size = new Size(100, 36) };
+            actions.Controls.AddRange(new Control[] { cancel, apply });
+            layout.Controls.Add(actions, 0, 1); layout.SetColumnSpan(actions, 2);
+            dialog.Controls.Add(layout);
+            dialog.AcceptButton = apply; dialog.CancelButton = cancel;
+            dialog.Shown += (sender, e) => { level.Focus(); level.Select(0, level.Text.Length); };
+            return dialog;
+        }
+
         private void buttonPlayerLvlSet_Click(object sender, EventArgs e)
         {
-            using (Form dialog = new Form())
+            using (var dialog = CreatePlayerLevelDialog(SiiNunitData.Economy.getPlayerLvl()[0]))
             {
-                dialog.Text = "Set player level";
-                dialog.AutoScaleDimensions = new SizeF(6F, 13F);
-                dialog.AutoScaleMode = AutoScaleMode.Font;
-                dialog.Font = Font;
-                dialog.ClientSize = new Size(270, 100);
-                dialog.FormBorderStyle = FormBorderStyle.FixedDialog;
-                dialog.MaximizeBox = false;
-                dialog.MinimizeBox = false;
-                dialog.ShowInTaskbar = false;
-                dialog.StartPosition = FormStartPosition.CenterParent;
-
-                Label label = new Label { Text = "Player level", AutoSize = true, Location = new Point(12, 15) };
-                NumericUpDown level = new NumericUpDown
-                {
-                    Minimum = 0,
-                    Maximum = Math.Min(int.MaxValue, NumericUtilities.GetPlayerLevel(uint.MaxValue)[0]),
-                    Value = SiiNunitData.Economy.getPlayerLvl()[0],
-                    AccessibleName = "Player level",
-                    Location = new Point(110, 12),
-                    Width = 145
-                };
-                Button apply = new Button { Text = "Apply", DialogResult = DialogResult.OK, Location = new Point(95, 57) };
-                Button cancel = new Button { Text = "Cancel", DialogResult = DialogResult.Cancel, Location = new Point(180, 57) };
-                dialog.Controls.AddRange(new Control[] { label, level, apply, cancel });
-                dialog.AcceptButton = apply;
-                dialog.CancelButton = cancel;
-                dialog.Shown += (s, args) => { level.Focus(); level.Select(0, level.Text.Length); };
-                if (dialog.ShowDialog(this) != DialogResult.OK)
-                    return;
-
+                if (dialog.ShowDialog(this) != DialogResult.OK) return;
+                var level = (NumericUpDown)dialog.Controls.Find("playerLevelValue", true)[0];
                 SiiNunitData.Economy.setPlayerExp((int)level.Value);
             }
-
             FormUpdatePlayerLevel();
         }
 
@@ -666,11 +664,6 @@ namespace TS_SE_Tool
                     SkillButtonArray[skillIndex, j].BackgroundImage = SkillImgSBG[1];
             }
 
-            for (int j = buttonIndex; j < 6; j++)
-            {
-                if (SkillButtonArray[skillIndex, j].Checked)                
-                    SkillButtonArray[skillIndex, j].BackgroundImage = SkillImgSBG[0];                
-            }
         }
 
         private void Skillbutton_MouseLeave(object sender, EventArgs e)
@@ -716,7 +709,7 @@ namespace TS_SE_Tool
                 Array.Reverse(ADR);
                 SiiNunitData.Economy._playerSkills[0] = Convert.ToByte(new string(ADR), 2);
 
-                thisbutton.BackgroundImage = SkillImgSBG[1];
+                thisbutton.BackgroundImage = SkillImgSBG[thisbutton.Checked ? 3 : 0];
             }            
         }
 
@@ -742,7 +735,7 @@ namespace TS_SE_Tool
         {
             CheckBox thisbutton = sender as CheckBox;
 
-            thisbutton.BackgroundImage = SkillImgSBG[1];
+            thisbutton.BackgroundImage = SkillImgSBG[thisbutton.Checked ? 3 : 1];
         }
 
         private void ADRbutton_MouseHover(object sender, EventArgs e)
@@ -753,12 +746,12 @@ namespace TS_SE_Tool
 
             if (thisbutton.Checked)
             {
-                thisbutton.BackgroundImage = SkillImgSBG[1];
+                thisbutton.BackgroundImage = SkillImgSBG[thisbutton.Checked ? 3 : 1];
                 thisbutton.Image = ADRImgS[adrIndex];
             }
             else
             {
-                thisbutton.BackgroundImage = SkillImgSBG[1];
+                thisbutton.BackgroundImage = SkillImgSBG[thisbutton.Checked ? 3 : 1];
                 thisbutton.Image = ADRImgSGrey[adrIndex];
             }
         }

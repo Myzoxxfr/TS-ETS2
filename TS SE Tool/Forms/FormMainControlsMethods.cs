@@ -132,7 +132,7 @@ namespace TS_SE_Tool
             if (File.Exists(pdf_path))
                 Process.Start(pdf_path);
             else
-                MessageBox.Show("Missing manual. Try to repair via update", "HowTo.pdf not found");
+                JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Missing manual. Try to repair via update", "HowTo.pdf not found");
         }
 
         private void youTubeVideoToolStripMenuItem_Click(object sender, EventArgs e)
@@ -222,10 +222,13 @@ namespace TS_SE_Tool
             // Root
             DataRowView drv = (DataRowView)comboBoxRootFolders.SelectedItem;
 
+            if (drv == null) { SetSteamCloudWarning(false); buttonMainLoadSave.Enabled = false; return; }
+            bool cloud = drv["ProfileType"].ToString() == "steam";
+            SetSteamCloudWarning(cloud);
             Font loadButtonFont = buttonMainLoadSave.Font;
 
             // Change Load button properties based on Profile type
-            if (drv["ProfileType"].ToString() == "steam")
+            if (cloud)
             {
                 buttonMainLoadSave.Enabled = false;
                 buttonMainLoadSave.Text = ResourceManagerMain.GetString(buttonMainLoadSave.Name + "SteamCloud"); // Disable Steam Cloud
@@ -233,9 +236,7 @@ namespace TS_SE_Tool
                 buttonMainLoadSave.Font = new Font(loadButtonFont.FontFamily, 12f, FontStyle.Bold);
 
                 labelHelpText.Visible = true;
-                SteamSelectedToggler = false;
-                SteamSelectedTimer.Start();
-                SteamSelectedTimer.Enabled = true;
+                SteamSelectedTimer.Stop();
             }
             else
             {
@@ -252,6 +253,7 @@ namespace TS_SE_Tool
             //===
             // Save
             drv = (DataRowView)comboBoxSaves.SelectedItem;
+            if (drv == null) { buttonMainLoadSave.Enabled = false; return; }
 
             string savePath = drv["savePath"].ToString() + @"\game.sii",
                    backupPath = drv["savePath"].ToString() + @"\game_backup.sii";
@@ -263,6 +265,8 @@ namespace TS_SE_Tool
                 buttonProfilesAndSavesRestoreBackup.Enabled = true;
             else
                 buttonProfilesAndSavesRestoreBackup.Enabled = false;
+
+            buttonMainLoadSave.Enabled = CanLoadSelectedSave();
 
             //===
             // Decode buton
@@ -277,37 +281,70 @@ namespace TS_SE_Tool
         //Main part controls
         
         //Game select
+        private bool switchingGame;
         public void ToggleGame_Click(object sender, EventArgs e)
         {
-            if (radioButtonMainGameSwitchETS.Checked)
-                ToggleGame("ETS2");
-            else
-                ToggleGame("ATS");
-
-            FillRootFoldersPaths(); // Populate with appropriate root folders
-        }
-
-        public void ToggleGame(string _game)
-        {
-            if (tempSavefileInMemory != null)
+            if (switchingGame || !(sender is RadioButton selected) || !selected.Checked) return;
+            switchingGame = true;
+            try { ToggleGame(selected == radioButtonMainGameSwitchETS ? "ETS2" : "ATS"); }
+            finally
             {
-                DialogResult result = MessageBox.Show("Savefile not saved." + Environment.NewLine + "Do you want to discard changes and switch game type?", "Switching game", 
-                    MessageBoxButtons.YesNo);
-
-                if (result == DialogResult.No)
-                    return;
-                else
-                {
-                    buttonMainDecryptSave.Enabled = true;
-
-                    ToggleControlsAccess(false);
-                    SetDefaultValues(false);
-                    ClearFormControls(true);
-                }
+                radioButtonMainGameSwitchETS.Checked = GameType == "ETS2";
+                radioButtonMainGameSwitchATS.Checked = GameType == "ATS";
+                switchingGame = false;
             }
-
-            GameType = _game;
         }
+
+        public void ToggleGame(string game)
+        {
+            TrySwitchGame(game, () => JR.Utils.GUI.Forms.FlexibleMessageBox.Show(
+                "Savefile not saved.\r\nDo you want to discard changes and switch game type?", "Switching game",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) == DialogResult.Yes, FillRootFoldersPaths);
+        }
+
+        internal bool TrySwitchGame(string game, Func<bool> confirmDiscard, Action rescan)
+        {
+            if (game != "ETS2" && game != "ATS") throw new ArgumentException("Unknown game", nameof(game));
+            if (game == GameType)
+            {
+                if (comboBoxRootFolders.DataSource == null) rescan();
+                return true;
+            }
+            if (tempSavefileInMemory != null && !confirmDiscard()) return false;
+            ToggleControlsAccess(false);
+            SetSteamCloudWarning(false);
+            GameType = game;
+            SetDefaultValues(false);
+            ClearFormControls(true);
+            comboBoxRootFolders.DataSource = comboBoxProfiles.DataSource = comboBoxSaves.DataSource = null;
+            Globals.ProfilesPaths = new string[0];
+            Globals.ProfilesHex.Clear();
+            Globals.SavesHex = new string[0];
+            Globals.SelectedProfile = Globals.SelectedProfilePath = Globals.SelectedProfileName = "";
+            Globals.SelectedSave = Globals.SelectedSavePath = Globals.SelectedSaveName = "";
+            buttonMainLoadSave.Enabled = buttonMainDecryptSave.Enabled = false;
+            comboBoxProfiles.Enabled = comboBoxSaves.Enabled = false;
+            buttonMainLoadSave.Text = ResourceManagerMain.GetString(buttonMainLoadSave.Name) ?? "Load";
+            rescan();
+            CheckSaveControls();
+            return true;
+        }
+
+        internal bool CanLoadSelectedSave()
+        {
+            var roots = comboBoxRootFolders.DataSource as DataTable;
+            var root = comboBoxRootFolders.SelectedItem as DataRowView;
+            if (roots == null || !Equals(roots.ExtendedProperties["GameType"], GameType) || root == null ||
+                Convert.ToString(root["ProfileType"]) == "steam") return false;
+            string profilePath = Convert.ToString(comboBoxProfiles.SelectedValue), savePath = Convert.ToString(comboBoxSaves.SelectedValue);
+            if (string.IsNullOrEmpty(profilePath) || string.IsNullOrEmpty(savePath) || !Path.IsPathRooted(profilePath) || !Path.IsPathRooted(savePath)) return false;
+            string saveParent = Path.GetDirectoryName(savePath);
+            if (string.IsNullOrEmpty(saveParent)) return false;
+            return string.Equals(Path.GetDirectoryName(profilePath), Convert.ToString(comboBoxRootFolders.SelectedValue), StringComparison.OrdinalIgnoreCase)
+                && string.Equals(Path.GetDirectoryName(saveParent), profilePath, StringComparison.OrdinalIgnoreCase)
+                && File.Exists(Path.Combine(savePath, "game.sii"));
+        }
+
 
         private void buttonMainAddCustomFolder_Click(object sender, EventArgs e)
         {
@@ -343,7 +380,7 @@ namespace TS_SE_Tool
             //If backups exist
             if (File.Exists(SiiSavePathBackup))
             {
-                DialogResult dr = MessageBox.Show("Restoring from backup file will overwrite existing save file." + Environment.NewLine +
+                DialogResult dr = JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Restoring from backup file will overwrite existing save file." + Environment.NewLine +
                                                   "Select: Yes - Overwrite | No - Swap files | Cancel - Abort restoring.", 
                                                   "Restoring Save file from Backup", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning);
                 //If Cancel - exit Method
@@ -399,7 +436,7 @@ namespace TS_SE_Tool
             ToggleMainControlsAccess(false);
 
             //Set variables
-            Globals.SelectedSavePath = Globals.SavesHex[comboBoxSaves.SelectedIndex];
+            Globals.SelectedSavePath = Convert.ToString(comboBoxSaves.SelectedValue);
             string SiiSavePath = Globals.SelectedSavePath + @"\game.sii";
 
             //Decrypt
@@ -442,7 +479,8 @@ namespace TS_SE_Tool
         internal static BackgroundWorker workerLoadSaveFile;
         private void LoadSaveFile_Click(object sender, EventArgs e)
         {
-            //Initial State Setup 
+            if (!CanLoadSelectedSave()) { buttonMainLoadSave.Enabled = false; return; }
+            //Initial State Setup
             ToggleMainControlsAccess(false);
             ToggleControlsAccess(false);
             ClearFormControls(true);
@@ -453,11 +491,11 @@ namespace TS_SE_Tool
             //Load Save file
 
             //Set variables
-            Globals.SelectedSavePath = Globals.SavesHex[comboBoxSaves.SelectedIndex];
+            Globals.SelectedSavePath = Convert.ToString(comboBoxSaves.SelectedValue);
             Globals.SelectedSave = Globals.SelectedSavePath.Split(new string[] { "\\" }, StringSplitOptions.None).Last();
             Globals.SelectedSaveName = GetCustomSaveFilename(Globals.SelectedSavePath);
 
-            Globals.SelectedProfilePath = Globals.ProfilesHex[comboBoxProfiles.SelectedIndex];
+            Globals.SelectedProfilePath = Convert.ToString(comboBoxProfiles.SelectedValue);
             Globals.SelectedProfile = Globals.SelectedProfilePath.Split(new string[] { "\\" }, StringSplitOptions.None).Last();
             Globals.SelectedProfileName = Utilities.TextUtilities.FromHexToString(Globals.SelectedProfile);
 
@@ -489,7 +527,7 @@ namespace TS_SE_Tool
         {
             if (extraDrivers.Count() > 0 || extraVehicles.Count() > 0)
             {
-                DialogResult res = MessageBox.Show("Do you want to save Drivers and Trucks from sold garages?", "Attention! Loosing content", MessageBoxButtons.YesNo);
+                DialogResult res = JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Do you want to save Drivers and Trucks from sold garages?", "Attention! Loosing content", MessageBoxButtons.YesNo);
                 if (res == DialogResult.Yes)
                 {
                     FormGaragesSoldContent testDialog = new FormGaragesSoldContent();
@@ -517,7 +555,7 @@ namespace TS_SE_Tool
         {
             comboBoxRootFolders.SelectedIndexChanged -= comboBoxRootFolders_SelectedIndexChanged;
 
-            string sv = comboBoxRootFolders.SelectedValue.ToString();
+            string sv = Convert.ToString(comboBoxRootFolders.SelectedValue);
 
             FillRootFoldersPaths(); // refresh list as backup entries was deleted\added
 
@@ -531,7 +569,7 @@ namespace TS_SE_Tool
             else
             {
                 comboBoxRootFolders.SelectedIndexChanged += comboBoxRootFolders_SelectedIndexChanged;
-                comboBoxRootFolders.SelectedIndex = 0; // if not - select first in the list
+                comboBoxRootFolders.SelectedIndex = comboBoxRootFolders.Items.Count > 0 ? 0 : -1; // Select the first remaining root.
             }
         }
 
@@ -539,232 +577,59 @@ namespace TS_SE_Tool
         {
             try
             {
-                string MyDocumentsPath = "",
-                       RemoteUserdataDirectory = "",
-                       SteamError = "", MyDocError = "";
-
-                bool SteamFolderExist = false, MyDocFolderExist = true;
-
-                try
-                {
-                    //string SteamInstallPath = Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Valve\Steam", "InstallPath", null).ToString();
-                    string SteamInstallPath = Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Valve\Steam", "InstallPath", null).ToString();
-
-                    if (SteamInstallPath == null)
-                    {
-                        //unknown steam path
-                        SteamError = "Can not detect Steam install folder.";
-                    }
-                    else
-                    {
-                        string SteamCloudPath = SteamInstallPath + @"\userdata";
-                        if (!Directory.Exists(SteamCloudPath))
-                        {
-                            //no userdata
-                            SteamError = "No userdata in Steam folder.";
-                        }
-                        else
-                        {
-                            string[] userdatadirectories = Directory.GetDirectories(SteamCloudPath);
-
-                            if (userdatadirectories.Length == 0)
-                            {
-                                //no steam user directories
-                                SteamError = "No user folders found in Steam folder.";
-                            }
-                            else
-                            {
-                                //DateTime lastHigh = DateTime.Now;
-
-                                string[] CurrentUserDirs = Directory.GetDirectories(SteamCloudPath).OrderByDescending(f => new FileInfo(f).LastWriteTime).ToArray();
-                                string CurrentUserDir = "";
-
-                                foreach (string tmpDir in CurrentUserDirs)
-                                {
-                                    string tmp = Path.GetFileName(tmpDir);
-
-                                    if (tmp.All(Char.IsDigit))
-                                    {
-                                        CurrentUserDir = tmpDir;
-                                        break;
-                                    }
-                                }
-
-                                string GameID = "";
-                                if (GameType == "ETS2")
-                                    GameID = @"\227300"; //ETS2
-                                else
-                                    GameID = @"\270880"; //ATS
-
-                                if (!Directory.Exists(CurrentUserDir + GameID))
-                                {
-                                    SteamError = "Game folder for - " + GameType + "game in Steam folder does not exist.";
-                                }
-                                else
-                                {
-                                    RemoteUserdataDirectory = CurrentUserDir + GameID + @"\remote";
-                                    SteamFolderExist = true;
-                                }
-                            }
-                        }
-                    }
-                }
-                catch
-                { }
-
-                if (!SteamFolderExist)
-                    IO_Utilities.LogWriter(SteamError);
-                //
-
-                MyDocumentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + dictionaryProfiles[GameType];
-
-                if (!Directory.Exists(MyDocumentsPath))
-                {
-                    MyDocError = "Folder in \"My documents\" for - " + GameType + " game does not exist.";
-                    MyDocFolderExist = false;
-                    IO_Utilities.LogWriter(MyDocError);
-                }
-                //
-
-                //Setup combobox DataTable
+                var roots = ProfilePaths.FindRoots(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                    ProfilePaths.SteamLocations(), GameType, checkBoxProfilesAndSavesProfileBackups.Checked);
                 DataTable combDT = new DataTable();
-                DataColumn dc = new DataColumn("ProfileID", typeof(string));
-                combDT.Columns.Add(dc);
-
-                dc = new DataColumn("ProfileName", typeof(string));
-                combDT.Columns.Add(dc);
-
-                dc = new DataColumn("ProfileType", typeof(string));
-                combDT.Columns.Add(dc);
-
-                //Collect Root folders
-                List<string> tempList = new List<string>();
-
-                // Standart folders
-                if (MyDocFolderExist || SteamFolderExist)
-                    if (checkBoxProfilesAndSavesProfileBackups.Checked)
-                    {
-                        //If backups selected
-                        //My docs Profiles
-                        if (MyDocFolderExist)
-                            foreach (string folder in Directory.GetDirectories(MyDocumentsPath))
-                            {
-                                if (Path.GetFileName(folder).StartsWith("profiles")) //Documents
-                                {
-                                    if (Directory.Exists(folder) && Directory.GetDirectories(folder).Count() > 0)
-                                    {
-                                        combDT.Rows.Add(folder, "[L] " + Path.GetFileName(folder), "local");
-                                        tempList.Add(folder);
-                                    }
-                                }
-                            }
-
-                        //Steam Profiles
-                        if (SteamFolderExist)
-                            foreach (string folder in Directory.GetDirectories(RemoteUserdataDirectory))
-                            {
-                                if (Path.GetFileName(folder).StartsWith("profiles")) //Steam
-                                {
-                                    if (Directory.Exists(folder) && Directory.GetDirectories(folder).Count() > 0)
-                                    {
-                                        combDT.Rows.Add(folder, "[S] " + Path.GetFileName(folder), "steam");
-                                        tempList.Add(folder);
-                                    }
-                                }
-                            }
-                    }
-                    else
-                    {
-                        //Without backups
-                        string folder = "";
-
-                        //My docs Profiles
-                        if (MyDocFolderExist)
-                        {
-                            folder = MyDocumentsPath + @"\profiles";
-
-                            if (Directory.Exists(folder) && Directory.GetDirectories(folder).Count() > 0)
-                            {
-                                combDT.Rows.Add(folder, "[L] profiles", "local");
-                                tempList.Add(folder);
-                            }
-                        }
-
-                        //Steam Profiles
-                        if (SteamFolderExist)
-                        {
-                            folder = RemoteUserdataDirectory + @"\profiles";
-
-                            if (Directory.Exists(folder) && Directory.GetDirectories(folder).Count() > 0)
-                            {
-                                combDT.Rows.Add(folder, "[S] profiles", "steam");
-                                tempList.Add(folder);
-                            }
-                        }
-                    }
-                
-                // Custom folders
+                combDT.ExtendedProperties["GameType"] = GameType;
+                combDT.Columns.Add("ProfileID", typeof(string));
+                combDT.Columns.Add("ProfileName", typeof(string));
+                combDT.Columns.Add("ProfileType", typeof(string));
+                var paths = new List<string>();
+                foreach (var root in roots)
+                {
+                    string label = (root.Value == "steam" ? "[S] " : "[L] ") + Path.GetFileName(root.Key);
+                    if (root.Value == "steam")
+                        label += " (" + ProfilePaths.SteamAccountName(root.Key) + ")";
+                    combDT.Rows.Add(root.Key, label, root.Value);
+                    paths.Add(root.Key);
+                }
                 int cpIndex = 0;
-                if (ProgSettingsV.CustomPaths.Keys.Contains(GameType))
-                    foreach (string CustPath in ProgSettingsV.CustomPaths[GameType])
+                if (ProgSettingsV.CustomPaths.TryGetValue(GameType, out var customPaths))
+                    foreach (string customPath in customPaths)
                     {
                         cpIndex++;
-                        if (Directory.Exists(CustPath))
+                        string path = Directory.Exists(Path.Combine(customPath, "profiles"))
+                            ? Path.Combine(customPath, "profiles") : customPath;
+                        if (Directory.Exists(path) && !paths.Contains(path, StringComparer.OrdinalIgnoreCase))
                         {
-                            if (Directory.Exists(CustPath + @"\profiles"))
-                            {
-                                combDT.Rows.Add(CustPath + @"\profiles", "[C] Custom path " + cpIndex.ToString(), "custom");
-                                tempList.Add(CustPath + @"\profiles");
-                            }
-                            else
-                            {
-                                combDT.Rows.Add(CustPath, "[C] Custom path " + cpIndex.ToString(), "custom");
-                                tempList.Add(CustPath);
-                            }
+                            combDT.Rows.Add(path, "[C] Custom path " + cpIndex, "custom");
+                            paths.Add(path);
                         }
                     }
-
-                if (!MyDocFolderExist && !SteamFolderExist)
-                {
-                    IO_Utilities.LogWriter("Standart Save folders does not exist for this game - " + GameType + "." + Environment.NewLine + MyDocError + " " + SteamError + Environment.NewLine +
-                        "Check installation. Start game first (Steam).");
-                }
-
-                //Save Root paths
-                Globals.ProfilesPaths = tempList.ToArray();
-
-                //Populate combobox
+                Globals.ProfilesPaths = paths.ToArray();
                 comboBoxRootFolders.ValueMember = "ProfileID";
                 comboBoxRootFolders.DisplayMember = "ProfileName";
-
                 comboBoxRootFolders.DataSource = combDT;
-
-                if (comboBoxRootFolders.Items.Count > 0)
+                comboBoxRootFolders.Enabled = combDT.Rows.Count > 0;
+                if (combDT.Rows.Count == 0)
                 {
-                    comboBoxRootFolders.Enabled = true;
-                }
-                else
-                {
-                    comboBoxRootFolders.SelectedIndex = -1;
-                    comboBoxRootFolders.Enabled = false;
-
                     comboBoxProfiles.Enabled = false;
                     comboBoxSaves.Enabled = false;
-
-                    MessageBox.Show("Standart Save folders does not exist for this game - " + GameType + "." + Environment.NewLine + 
-                                    MyDocError + Environment.NewLine + SteamError + Environment.NewLine +
-                                    "Check game installation, Start game and Refresh profiles list or Add Custom paths.");
+                    JR.Utils.GUI.Forms.FlexibleMessageBox.Show("No save profiles found for " + GameType + "." + Environment.NewLine +
+                        "This tool needs the game's save folder, not its installation folder." + Environment.NewLine +
+                        "Save a game first, then refresh. For a custom game home, use Add Custom paths and choose the folder containing profiles.");
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                IO_Utilities.ErrorLogWriter("Populating Root Profiles failed");
+                IO_Utilities.ErrorLogWriter("Populating Root Profiles failed: " + ex);
             }
         }
 
         private void comboBoxRootFolders_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (!Directory.Exists(Globals.ProfilesPaths[comboBoxRootFolders.SelectedIndex]))
+            if (comboBoxRootFolders.SelectedIndex < 0 || comboBoxRootFolders.SelectedIndex >= Globals.ProfilesPaths.Length ||
+                !Directory.Exists(Globals.ProfilesPaths[comboBoxRootFolders.SelectedIndex]))
                 return;
 
             // Disable save\profile control buttons
@@ -781,7 +646,7 @@ namespace TS_SE_Tool
         {
             comboBoxRootFolders.SelectedIndexChanged -= comboBoxRootFolders_SelectedIndexChanged;
 
-            string sv = comboBoxRootFolders.SelectedValue.ToString(); //save selected value
+            string sv = Convert.ToString(comboBoxRootFolders.SelectedValue); //save selected value
 
             FillRootFoldersPaths(); // refresh list in case entries was deleted\added
 
@@ -795,7 +660,7 @@ namespace TS_SE_Tool
             else
             {
                 comboBoxRootFolders.SelectedIndexChanged += comboBoxRootFolders_SelectedIndexChanged;
-                comboBoxRootFolders.SelectedIndex = 0; // if not - select first in the list
+                comboBoxRootFolders.SelectedIndex = comboBoxRootFolders.Items.Count > 0 ? 0 : -1; // Select the first remaining root.
             }
         }
 
@@ -803,7 +668,8 @@ namespace TS_SE_Tool
         {
             try
             {
-                if (!Directory.Exists(Globals.ProfilesPaths[comboBoxRootFolders.SelectedIndex]))
+                if (comboBoxRootFolders.SelectedIndex < 0 || comboBoxRootFolders.SelectedIndex >= Globals.ProfilesPaths.Length ||
+                !Directory.Exists(Globals.ProfilesPaths[comboBoxRootFolders.SelectedIndex]))
                 {
                     FillRootFoldersPaths();
                     return;
@@ -883,7 +749,7 @@ namespace TS_SE_Tool
                     buttonProfilesAndSavesOpenSaveFolder.Enabled = false;
                     buttonMainDecryptSave.Enabled = false;
 
-                    MessageBox.Show("Please select another folder", "No valid profiles found");
+                    JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Please select another folder", "No valid profiles found");
                 }
             }
             catch
@@ -1109,12 +975,12 @@ namespace TS_SE_Tool
         private void comboBoxSaves_SelectedIndexChanged(object sender, EventArgs e)
         {
             // Update save path
-            Globals.SelectedSavePath = Globals.SavesHex[comboBoxSaves.SelectedIndex];
+            Globals.SelectedSavePath = Convert.ToString(comboBoxSaves.SelectedValue);
             Globals.SelectedSave = Globals.SelectedSavePath.Split(new string[] { "\\" }, StringSplitOptions.None).Last();
             Globals.SelectedSaveName = GetCustomSaveFilename(Globals.SelectedSavePath);
 
             // Update Profile path
-            Globals.SelectedProfilePath = Globals.ProfilesHex[comboBoxProfiles.SelectedIndex];
+            Globals.SelectedProfilePath = Convert.ToString(comboBoxProfiles.SelectedValue);
             Globals.SelectedProfile = Globals.SelectedProfilePath.Split(new string[] { "\\" }, StringSplitOptions.None).Last();
             Globals.SelectedProfileName = Utilities.TextUtilities.FromHexToString(Globals.SelectedProfile);
 

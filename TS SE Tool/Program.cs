@@ -33,24 +33,40 @@ namespace TS_SE_Tool
         [STAThread]
         static void Main()
         {
-            // Add the event handler for handling UI thread exceptions to the event
-            Application.ThreadException += new ThreadExceptionEventHandler(UIThreadException);
+            using (var instance = new SingleInstance())
+            {
+                if (!instance.IsPrimary) { SingleInstance.RequestActivation(); return; }
+                // Add the event handler for handling UI thread exceptions to the event
+                Application.ThreadException += new ThreadExceptionEventHandler(UIThreadException);
+    
+                // Set the unhandled exception mode to force all Windows Forms errors to go through handler
+                Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+    
+                // Add the event handler for handling non-UI thread exceptions to the event
+                AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+    
+                IO_Utilities.LogWriter("--- START ---");
+                IO_Utilities.LogWriter(AssemblyData.AssemblyProduct + " - " + AssemblyData.AssemblyVersion);
+                DetectEnviroment.DetectOS();
+                DetectEnviroment.Get45PlusFromRegistry();
+    
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                using (var main = new FormMain())
+                {
+                    main.PrepareVisuals();
+                    PrepareStartupControls(main);
+                    Application.Run(main);
+                }
+                IO_Utilities.LogWriter("--- END ---");
+            }
+        }
 
-            // Set the unhandled exception mode to force all Windows Forms errors to go through handler
-            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
-
-            // Add the event handler for handling non-UI thread exceptions to the event
-            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
-
-            IO_Utilities.LogWriter("--- START ---");
-            IO_Utilities.LogWriter(AssemblyData.AssemblyProduct + " - " + AssemblyData.AssemblyVersion);
-            DetectEnviroment.DetectOS();
-            DetectEnviroment.Get45PlusFromRegistry();
-
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new FormMain());
-            IO_Utilities.LogWriter("--- END ---");
+        internal static void PrepareStartupControls(Control control)
+        {
+            // Create control handles while hidden so the first visible frame has its assets ready.
+            var handle = control.Handle;
+            foreach (Control child in control.Controls) PrepareStartupControls(child);
         }
 
         // Handle the UI exceptions by showing a dialog box, and asking the user whether
@@ -66,13 +82,14 @@ namespace TS_SE_Tool
 
                 IO_Utilities.ErrorLogWriter(ex.Message + "\n\nStack Trace:\n" + ex.StackTrace);
 
-                result = MessageBox.Show(errorMsg, "Windows Forms Error", MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Stop);
+                result = JR.Utils.GUI.Forms.FlexibleMessageBox.Show(errorMsg, "Windows Forms Error", MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Stop);
             }
             catch
             {
                 try
                 {
-                    MessageBox.Show("Fatal Windows Forms Error", "Fatal Windows Forms Error", MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Stop);
+                    // Emergency reporting must still work if the custom UI or bundled font cannot load.
+                    System.Windows.Forms.MessageBox.Show("Fatal Windows Forms Error", "Fatal Windows Forms Error", MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Stop);
                 }
                 finally
                 {
@@ -97,7 +114,7 @@ namespace TS_SE_Tool
 
                 string errorMsg = "An application error occurred. Check errorlog.log for details.";
 
-                MessageBox.Show(errorMsg, "Non-UI Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                JR.Utils.GUI.Forms.FlexibleMessageBox.Show(errorMsg, "Non-UI Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 
                 IO_Utilities.ErrorLogWriter(ex.Message + "\n\nStack Trace:\n" + ex.StackTrace);
             }
@@ -105,7 +122,7 @@ namespace TS_SE_Tool
             {
                 try
                 {
-                    MessageBox.Show("Fatal Non-UI Error. Could not write the error to the event log.\r\nReason: " 
+                    System.Windows.Forms.MessageBox.Show("Fatal Non-UI Error. Could not write the error to the event log.\r\nReason: " 
                         + exc.Message, "Fatal Non-UI Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
                 }
                 finally

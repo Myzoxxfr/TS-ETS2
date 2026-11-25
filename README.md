@@ -1,6 +1,6 @@
-# TS-ETS2
+# TS-ETS2 v.0.3.13.0
 
-Truck Simulator Save Editor Tool, forked from LIPtoH/TS-SE-Tool for compatibility for game version 1.6x and above.
+Truck Simulator Save Editor Tool, forked from LIPtoH/TS-SE-Tool with compatibility for game version 1.6x and above.
 
 ## Description
 
@@ -31,6 +31,4 @@ Windows x64
 * share Truck position.
 * share GPS paths.
 * share Multiple Truck positions as one Convoy Control pack.
-
-## 
 

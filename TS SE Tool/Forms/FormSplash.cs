@@ -33,18 +33,34 @@ using TS_SE_Tool.Utilities;
 
 namespace TS_SE_Tool
 {
-    public partial class FormSplash : Form
+    public partial class FormSplash : MaterialForm
     {
         string[] NewVersion = { "", "" };
         FormMain MainForm = Application.OpenForms.OfType<FormMain>().Single();
 
         bool CheckForUpdates = true;
+        private readonly CheckBox hideNextTime = new CheckBox { Name = "hideStartupNextTime", Text = "Don't show again next time", AutoSize = true, Anchor = AnchorStyles.None };
 
         public FormSplash()
         {
             InitializeComponent();
+            AutoScaleMode = AutoScaleMode.Dpi;
+            AutoScaleDimensions = new SizeF(96, 96);
+            Font = AppTypography.Create(10);
+            ClientSize = new Size(460, 520);
+            MinimumSize = new Size(420, 480);
+            tableLayoutPanel1.RowCount = 3;
+            tableLayoutPanel1.RowStyles.Clear();
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 44));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 60));
+            tableLayoutPanel1.SetRow(buttonOK, 2);
+            tableLayoutPanel1.Controls.Add(hideNextTime, 0, 1);
+            hideNextTime.Checked = MainForm.ProgSettingsV.HideStartupPopup;
+            FormClosing += (sender, e) => SaveStartupPreference();
 
             MainForm.HelpTranslateFormMethod(this);
+            if (Text == "FormSplash") Text = "TS-ETS2";
 
             labelTSSE.Text = Utilities.AssemblyData.AssemblyProduct;
 
@@ -61,9 +77,16 @@ namespace TS_SE_Tool
             tableLayoutPanel3.ColumnStyles[0].Width = 0;
             tableLayoutPanel3.ColumnStyles[1].Width = 0;
             tableLayoutPanel3.ColumnStyles[2].Width = 100;
+            linkLabelHelpYouTube.Anchor = AnchorStyles.None;
 
             labelSupportDeveloper.Visible = false;
             buttonSupportDeveloper.Visible = false;
+        }
+
+        internal void SaveStartupPreference()
+        {
+            MainForm.ProgSettingsV.HideStartupPopup = hideNextTime.Checked;
+            MainForm.ProgSettingsV.WriteConfigToFile();
         }
 
         private void FormSplash_Load(object sender, EventArgs e)
@@ -74,7 +97,7 @@ namespace TS_SE_Tool
             }
             catch
             {
-                MessageBox.Show("Please update manually in order to fix it.", "Installation corrupted", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Please update manually in order to fix it.", "Installation corrupted", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 buttonOK.Click -= new EventHandler(this.buttonOK_Click);
                 buttonOK.Text = "Close application";
                 buttonOK.Click += new EventHandler(this.buttonOK_ClickCloseApp);
@@ -135,7 +158,7 @@ namespace TS_SE_Tool
             if (File.Exists(file))
                 Process.Start(file);
             else
-                MessageBox.Show("Missing manual. Try to repair via update", "HowTo.pdf not found");
+                JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Missing manual. Try to repair via update", "HowTo.pdf not found");
         }
 
         private void linkLabelHelpYouTube_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -157,7 +180,7 @@ namespace TS_SE_Tool
         {
             string url = Utilities.Web_Utilities.External.linkHelpDeveloper;
 
-            DialogResult result = MessageBox.Show("This will open " + url + " web-page.\nDo you want to continue?", "Support developer", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button2);
+            DialogResult result = JR.Utils.GUI.Forms.FlexibleMessageBox.Show("This will open " + url + " web-page.\nDo you want to continue?", "Support developer", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button2);
             if (result == DialogResult.Yes)
                 System.Diagnostics.Process.Start(url);
         }
@@ -184,9 +207,9 @@ namespace TS_SE_Tool
                     buttonOK.Text = "Getting a link to restore important files";
                 }
 
-                NewVersion = await Task.Run(() => Web_Utilities.External.CheckNewVersionAvailability(linkLabelNewVersion));
+                NewVersion = await Task.Run(() => Web_Utilities.External.CheckNewVersionAvailability());
 
-                if (NewVersion != null && NewVersion[0] != "" && NewVersion[1] != "")
+                if (NewVersion != null)
                 {
                     bool? betterVersion = false;
                     betterVersion = Web_Utilities.External.CheckNewVersionStatus(NewVersion);
@@ -195,16 +218,18 @@ namespace TS_SE_Tool
                     {
                         if (checkBool)
                         {
-                            linkLabelNewVersion.Text = String.Format("New version {0} available!\r\n(Download)", NewVersion[0]);
+                            linkLabelNewVersion.Text = String.Format("New version {0} available!\r\n({1})", NewVersion[0],
+                                string.IsNullOrEmpty(NewVersion[1]) ? "Open release" : "Download");
 
                             SetLinkLabelNewVersionvisual(visualStatus.good);
                         }
                         else
                         {
                             if (MainForm.TssetFoldersExist)
-                                linkLabelNewVersion.Text = String.Format("You are using latest version!\r\n(Repair)");
+                            linkLabelNewVersion.Text = "You are using the latest version!\r\n(Open release)";
                             else
-                                linkLabelNewVersion.Text = String.Format("Your version lacking important files!\r\n(Repair)");
+                            linkLabelNewVersion.Text = string.IsNullOrEmpty(NewVersion[1])
+                                ? "Important files are missing.\r\n(Open release)" : "Important files are missing.\r\n(Repair)";
 
                             SetLinkLabelNewVersionvisual(visualStatus.neutralLinked);
                         }
@@ -213,7 +238,7 @@ namespace TS_SE_Tool
                     }
                     else
                     {
-                        linkLabelNewVersion.Text = String.Format("Hello developer =)");
+                        linkLabelNewVersion.Text = "You are using a newer build than the latest release.";
 
                         SetLinkLabelNewVersionvisual(visualStatus.neutral);
                     }
@@ -227,8 +252,8 @@ namespace TS_SE_Tool
                     SetLinkLabelNewVersionvisual(visualStatus.bad);
                 }
 
-                //Update time whaen checking for updates
-                MainForm.ProgSettingsV.LastUpdateCheck = DateTime.Now;
+                // A failed request must not suppress checks for another 24 hours.
+                if (NewVersion != null) MainForm.ProgSettingsV.LastUpdateCheck = DateTime.Now;
             }
             else
                 tableLayoutPanel2.RowStyles[3] = new RowStyle(SizeType.Absolute, 0F);
@@ -266,7 +291,7 @@ namespace TS_SE_Tool
                         linkLabelNewVersion.LinkBehavior = LinkBehavior.NeverUnderline;
                         linkLabelNewVersion.LinkColor = this.ForeColor;
                         linkLabelNewVersion.DisabledLinkColor = this.ForeColor;
-                        linkLabelNewVersion.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 204);
+                        linkLabelNewVersion.Font = AppTypography.Create(8.25F, FontStyle.Regular);
 
                         break;
                     }
@@ -278,7 +303,7 @@ namespace TS_SE_Tool
                         linkLabelNewVersion.LinkBehavior = LinkBehavior.NeverUnderline;
                         linkLabelNewVersion.LinkColor = this.ForeColor;
                         linkLabelNewVersion.DisabledLinkColor = this.ForeColor;
-                        linkLabelNewVersion.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
+                        linkLabelNewVersion.Font = AppTypography.Create(8.25F, FontStyle.Bold);
 
                         break;
                     }
@@ -290,7 +315,7 @@ namespace TS_SE_Tool
                         linkLabelNewVersion.LinkBehavior = LinkBehavior.AlwaysUnderline;
                         linkLabelNewVersion.LinkColor = this.ForeColor;
                         linkLabelNewVersion.DisabledLinkColor = this.ForeColor;
-                        linkLabelNewVersion.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
+                        linkLabelNewVersion.Font = AppTypography.Create(8.25F, FontStyle.Bold);
 
                         break;
                     }
@@ -301,7 +326,7 @@ namespace TS_SE_Tool
 
                         linkLabelNewVersion.LinkBehavior = LinkBehavior.AlwaysUnderline;
                         linkLabelNewVersion.LinkColor = Color.LimeGreen;
-                        linkLabelNewVersion.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
+                        linkLabelNewVersion.Font = AppTypography.Create(8.25F, FontStyle.Bold);
 
                         break;
                     }
@@ -312,7 +337,7 @@ namespace TS_SE_Tool
 
                         linkLabelNewVersion.LinkBehavior = LinkBehavior.NeverUnderline;
                         linkLabelNewVersion.DisabledLinkColor = Color.Crimson;
-                        linkLabelNewVersion.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 204);
+                        linkLabelNewVersion.Font = AppTypography.Create(8.25F, FontStyle.Bold);
 
                         break;
                     }

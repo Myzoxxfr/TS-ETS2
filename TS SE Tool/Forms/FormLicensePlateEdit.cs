@@ -11,15 +11,33 @@ using System.Threading;
 
 namespace TS_SE_Tool
 {
-    public partial class FormLicensePlateEdit : Form
+    public partial class FormLicensePlateEdit : MaterialForm
     {
         TS_SE_Tool.FormMain MainForm = Application.OpenForms.OfType<TS_SE_Tool.FormMain>().Single();
         public string licenseplatetext = "";
-        private bool WindowsSizeState = false;
 
         public FormLicensePlateEdit(string _licenseplatetext)
         {
             InitializeComponent();
+            AutoScaleMode = AutoScaleMode.Dpi;
+            AutoScaleDimensions = new SizeF(96, 96);
+            Font = AppTypography.Create(10);
+            ClientSize = new Size(840, 460);
+            MinimumSize = new Size(780, 420);
+            MaximumSize = Size.Empty;
+            tableLayoutPanel1.Padding = new Padding(14);
+            tableLayoutPanel1.ColumnStyles[0] = new ColumnStyle(SizeType.Percent, 75);
+            tableLayoutPanel1.ColumnStyles[1] = new ColumnStyle(SizeType.Percent, 25);
+            tableLayoutPanel1.RowStyles[0].Height = 30;
+            tableLayoutPanel1.RowStyles[1].Height = 74;
+            tableLayoutPanel1.RowStyles[2].Height = 48;
+            tableLayoutPanel1.RowStyles[4].Height = 46;
+            tableLayoutPanel1.RowStyles[5].Height = 0;
+            tableLayoutPanel1.SetColumnSpan(panel2, 2);
+            panel2.AutoScroll = true;
+            textBoxLicensePlateCountry.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            buttonShowTagHelp.Visible = false;
+            buttonOk.Height = buttonCancel.Height = 36;
 
             this.Icon = Utilities.Graphics_TSSET.IconFromImage(MainForm.ProgUIImgsDict["Settings"]);
 
@@ -35,8 +53,6 @@ namespace TS_SE_Tool
             this.SuspendLayout();
 
             CreateControls();
-            ToggleFormSize();
-            ToggleTagHelpText();
 
             MainForm.HelpTranslateFormMethod(this);
 
@@ -65,83 +81,23 @@ namespace TS_SE_Tool
             SetTagHelpText();
         }
 
-        private void ToggleFormSize()
-        {
-            Size WinSizeMin = new Size(676, 212),
-                 WinSizeMax = new Size(676, 282);
-
-            if (WindowsSizeState)
-            {
-                this.MaximumSize = WinSizeMax;
-                this.MinimumSize = WinSizeMax;
-            }
-            else
-            {
-                this.MinimumSize = WinSizeMin;
-                this.MaximumSize = WinSizeMin;
-            }
-
-            WindowsSizeState = !WindowsSizeState;
-        }
-        private void buttonShowTagHelp_Click(object sender, EventArgs e)
-        {
-            ToggleFormSize();
-            ToggleTagHelpText();
-        }
-
         private void SetTagHelpText()
         {
-            labelLicensePlateTagsHelp.Text = "";
-            labelLicensePlateTagsHelp2.Text = "";
-
-            StringFormat format = new StringFormat();
-
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine("~ <color value=FFBBGGRR>");
-            sb.AppendLine("~ <font xscale=0.5 yscale=0.5> </font>");
-            sb.AppendLine("~ <offset hshift=5 vshift=-7>");
-            sb.AppendLine("~ <img src=/material/ui/lp/COUNTRY/NAME.mat width=10 height=15>");
-            sb.AppendLine("~ <align left=23> <align right=23> </align>");
-            sb.AppendLine("~ <sup> </sup> <sub> </sub>");
-            sb.AppendLine("~ <ret>");
-
-            string leftText = sb.ToString();
-
-            sb = new StringBuilder();
-            sb.AppendLine("Color in HEX Format ABGR");
-            sb.AppendLine("Font scale");
-            sb.AppendLine("Offset Next symbols & images");
-            sb.AppendLine("Add Image with possible Scaling");
-            sb.AppendLine("Place Symbols in columns with offset");
-            sb.AppendLine("Upper & Lower index");
-            sb.AppendLine("Start over to Change column (align) or make Multilayer plate");
-
-            string rightText = sb.ToString();
-
-            panel2.Paint += new PaintEventHandler((sender, e) =>
+            panel2.Controls.Clear();
+            var help = new TableLayoutPanel { Name = "licensePlateHelp", Dock = DockStyle.Top, AutoSize = true, ColumnCount = 2 };
+            help.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 60));
+            help.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40));
+            string[] tags = { "<color value=FFBBGGRR>", "<font xscale=0.5 yscale=0.5> </font>", "<offset hshift=5 vshift=-7>",
+                "<img src=/material/ui/lp/COUNTRY/NAME.mat width=10 height=15>", "<align left=23> <align right=23> </align>", "<sup> </sup> <sub> </sub>", "<ret>" };
+            string[] meanings = { "Colour in HEX format ABGR", "Font scale", "Offset the next symbols and images", "Add an image and set its size",
+                "Place symbols in columns", "Upper and lower index", "Start a new column or plate layer" };
+            for (int i = 0; i < tags.Length; i++)
             {
-                format.Alignment = StringAlignment.Near;
-
-                e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SystemDefault;
-                e.Graphics.DrawString(leftText, labelLicensePlateTagsHelp.Font, SystemBrushes.ControlText, 0, 0, format);
-
-                int sWidth = Convert.ToInt32(e.Graphics.MeasureString(rightText, labelLicensePlateTagsHelp.Font).Width),
-                    panelWidth = ((Panel)sender).Width;
-
-                format.Alignment = StringAlignment.Far;
-
-                e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SystemDefault;
-                e.Graphics.DrawString(rightText, labelLicensePlateTagsHelp.Font, SystemBrushes.ControlText, panelWidth, 0, format);
-            });
-
-        }
-
-        private void ToggleTagHelpText()
-        {
-            if (WindowsSizeState)
-                buttonShowTagHelp.Text = "Expand help";
-            else
-                buttonShowTagHelp.Text = "Collapse help";
+                help.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+                help.Controls.Add(new Label { Text = tags[i], AutoSize = true, MaximumSize = new Size(480, 0), Margin = new Padding(3, 4, 10, 4), UseMnemonic = false }, 0, i);
+                help.Controls.Add(new Label { Text = meanings[i], AutoSize = true, MaximumSize = new Size(300, 0), Margin = new Padding(3, 4, 3, 4) }, 1, i);
+            }
+            panel2.Controls.Add(help);
         }
 
         private void textBoxLicensePlateNumber_TextChanged(object sender, EventArgs e)

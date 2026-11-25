@@ -35,7 +35,7 @@ using TS_SE_Tool.Utilities;
 
 namespace TS_SE_Tool
 {
-    public partial class FormMain : Form
+    public partial class FormMain : MaterialForm
     {
         private BackgroundWorker generalWorker;
 
@@ -324,6 +324,7 @@ namespace TS_SE_Tool
 
                 SkillImgSBG[i] = Graphics_TSSET.ddsImgLoader(new[] { imgPaths[i] }, 46, 46, 9, y).images[0];
             }
+            MaterialYou.StyleSkillImages(SkillImgSBG);
 
             //=== Company
 
@@ -847,7 +848,7 @@ namespace TS_SE_Tool
 
             if (SiiNunitData.UnidentifiedBlocks.Count > 0)
             {
-                MessageBox.Show("Some save data was not recognized, which may affect editing." + Environment.NewLine + Environment.NewLine +
+                JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Some save data was not recognized, which may affect editing." + Environment.NewLine + Environment.NewLine +
                     "Check errorlog.log for details.",
                     "Unidentified blocks in save file", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -879,12 +880,19 @@ namespace TS_SE_Tool
                 ToggleControlsAccess(true);
 
                 IO_Utilities.ErrorLogWriter("Error during Writing save file" + Environment.NewLine + e.Error.Message +  Environment.NewLine + e.Error.StackTrace);
-                MessageBox.Show("Something went wrong during Writing Save file", "Error during Writing save file", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                JR.Utils.GUI.Forms.FlexibleMessageBox.Show("Something went wrong during Writing Save file", "Error during Writing save file", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                 return;
             }
 
             toolStripProgressBarMain.Value = 0;
+
+            if (e.Cancelled)
+            {
+                ToggleMainControlsAccess(true);
+                ToggleControlsAccess(true);
+                return;
+            }
 
             ClearFormControls(false);
 
@@ -895,8 +903,8 @@ namespace TS_SE_Tool
             GC.Collect();
             GC.WaitForPendingFinalizers();
 
-            IO_Utilities.LogWriter("Save game successfully writen in " + Globals.SelectedSavePath);
-            MessageBox.Show("File saved", "Saving", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            IO_Utilities.LogWriter("Save game successfully written in " + Globals.SelectedSavePath);
+            JR.Utils.GUI.Forms.FlexibleMessageBox.Show("File saved", "Saving", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
 
@@ -968,6 +976,7 @@ namespace TS_SE_Tool
             {
                 UpdateStatusBarMessage.ShowStatusMessage(SMStatus.Error, "error_file_was_modified");
                 IO_Utilities.LogWriter("Save game was modified - reload file to prevent progress loss");
+                e.Cancel = true;
             }
             else
             {
